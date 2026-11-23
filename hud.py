@@ -33,6 +33,7 @@ class Hud:
         self._callbacks = {"mute": on_mute, "stop": on_stop, "talk": on_talk}
         self._hotkeys = hotkeys or {}
         self._state = "starting"
+        self._detail_text = ""
         self._phase = 0.0
         self.ok = False
         self._thread = threading.Thread(target=self._run, daemon=True, name="hud")
@@ -89,7 +90,7 @@ class Hud:
             b.pack(side="left", padx=(0, 6))
             b.bind("<Button-1>", lambda e: self._fire(key))
             b.bind("<Enter>", lambda e: (b.configure(bg="#1d4460"), self._detail.configure(text=tip)))
-            b.bind("<Leave>", lambda e: b.configure(bg="#12283a"))
+            b.bind("<Leave>", lambda e: (b.configure(bg="#12283a"), self._detail.configure(text=self._detail_text)))
             return b
 
         keys = self._hotkeys
@@ -134,7 +135,8 @@ class Hud:
                     label, colour = STATES[value]
                     self._status.configure(text=label, fg=colour)
                     if detail is not None:
-                        self._detail.configure(text=detail[:60])
+                        self._detail_text = detail[:60]
+                        self._detail.configure(text=self._detail_text)
         except queue.Empty:
             pass
         self._draw()
