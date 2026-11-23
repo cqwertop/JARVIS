@@ -12,6 +12,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import threading
 import time
 import urllib.parse
@@ -22,12 +23,34 @@ from pathlib import Path
 import psutil
 from anthropic import beta_tool
 
+import memory as memory_mod
+import tasks as tasks_mod
+from settings import DATA_DIR
+
 HERE = Path(__file__).parent
-NOTES_FILE = HERE / "notes.txt"
-REMINDERS_FILE = HERE / "reminders.json"
+NOTES_FILE = DATA_DIR / "notes.txt"
+REMINDERS_FILE = DATA_DIR / "reminders.json"
+IS_WINDOWS = sys.platform == "win32"
 
 # main.py sets this so reminders can speak out loud when they fire.
 announce = print
+
+# Set up by init() - long-term memory and the task list.
+memory_store: memory_mod.MemoryStore | None = None
+task_store: tasks_mod.TaskStore | None = None
+
+
+def init(settings: dict):
+    """Open the data files. Older versions kept notes/reminders next to the code - move them into data/."""
+    global memory_store, task_store
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    for old in (HERE / "notes.txt", HERE / "reminders.json"):
+        new = DATA_DIR / old.name
+        if old.exists() and not new.exists():
+            old.replace(new)
+    embedder = memory_mod.Embedder(settings["ollama_url"], settings["embedding_model"])
+    memory_store = memory_mod.MemoryStore(DATA_DIR / "memory.json", embedder)
+    task_store = tasks_mod.TaskStore(DATA_DIR / "tasks.json")
 
 
 def _get_json(url: str, timeout: float = 10):
@@ -163,6 +186,8 @@ def close_application(name: str) -> str:
         name: The app's name as a person would say it.
     """
     key = re.sub(r"[^a-z0-9]", "", name.lower())
+    if len(key) < 3:
+        return f"'{name}' is too short to match safely - say the app's full name."
     killed = set()
     for proc in psutil.process_iter(["name"]):
         pname = (proc.info["name"] or "").lower()
@@ -274,6 +299,7 @@ _reminders_lock = threading.Lock()
 
 
 def _save_reminders():
+    REMINDERS_FILE.parent.mkdir(parents=True, exist_ok=True)
     REMINDERS_FILE.write_text(json.dumps(_reminders, indent=2))
 
 
@@ -353,6 +379,7 @@ def take_note(text: str) -> str:
         text: The note to save.
     """
     stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+    NOTES_FILE.parent.mkdir(parents=True, exist_ok=True)
     with NOTES_FILE.open("a", encoding="utf-8") as f:
         f.write(f"[{stamp}] {text}\n")
     return "Note saved."
@@ -368,7 +395,7 @@ def read_notes(last_n: int = 10) -> str:
     if not NOTES_FILE.exists():
         return "There are no notes yet."
     lines = NOTES_FILE.read_text(encoding="utf-8").strip().splitlines()
-    return "\n".join(lines[-int(last_n):]) or "There are no notes yet."
+    return "\n".join(lines[-max(1, int(last_n)):]) or "There are no notes yet."
 
 
 # --------------------------------------------------------------------------- system
@@ -379,7 +406,7 @@ def get_system_status() -> str:
     info = {
         "cpu_percent": psutil.cpu_percent(interval=0.5),
         "memory_percent": psutil.virtual_memory().percent,
-        "disk_free_gb": round(psutil.disk_usage("C:\\").free / 1e9, 1),
+        "disk_free_gb": round(psutil.disk_usage(Path.home().anchor or "/").free / 1e9, 1),
     }
     battery = psutil.sensors_battery()
     if battery:
@@ -428,6 +455,125 @@ def system_power(action: str) -> str:
     return f"Unknown action {action}."
 
 
+# --------------------------------------------------------------------------- long-term memory
+
+@beta_tool
+def remember(text: str, category: str = "fact") -> str:
+    """Save something to long-term memory so it's available in future conversations. Use when the user asks you to
+    remember something, states a lasting preference, or shares lasting facts about their projects, school or people.
+    Write it as a self-contained statement, e.g. "The user's robotics project uses an Arduino Mega and two servos".
+
+    Args:
+        text: The fact to remember, as a complete sentence.
+        category: One of "preference", "project", "person", "school", "device", "fact".
+    """
+    item, is_new = memory_store.add(text, category)
+    return f"{'Remembered' if is_new else 'Updated existing memory'} #{item['id']}: {item['text']}"
+
+
+@beta_tool
+def recall(query: str = "", category: str = "") -> str:
+    """Search long-term memory. Use whenever earlier knowledge about the user could help (their projects, preferences,
+    school, people), and when they ask what you remember. Leave query empty to list the most recent memories.
+
+    Args:
+        query: What to look for, e.g. "robotics project" or "music taste".
+        category: Optional filter: "preference", "project", "person", "school", "device", "fact".
+    """
+    found = memory_store.search(query, category=category)
+    if not found:
+        return "Nothing relevant in memory."
+    return "\n".join(f"#{i['id']} ({i['category']}): {i['text']}" for i in found)
+
+
+@beta_tool
+def forget(memory_ids: list[int]) -> str:
+    """Permanently delete memories by their # id (use recall first to find the ids). Use when the user says to forget
+    something or to stop using some information.
+
+    Args:
+        memory_ids: The ids to delete, e.g. [3, 7].
+    """
+    removed = memory_store.delete([int(i) for i in memory_ids])
+    if not removed:
+        return "No memories with those ids."
+    return "Deleted: " + "; ".join(i["text"] for i in removed)
+
+
+@beta_tool
+def list_all_memories(category: str = "") -> str:
+    """List everything stored in long-term memory (for "show me what you have stored").
+
+    Args:
+        category: Optional filter: "preference", "project", "person", "school", "device", "fact".
+    """
+    items = memory_store.all(category)
+    if not items:
+        return "Memory is empty."
+    return f"{len(items)} memories (stored in {memory_store.path}):\n" + "\n".join(
+        f"#{i['id']} ({i['category']}): {i['text']}" for i in items
+    )
+
+
+# --------------------------------------------------------------------------- tasks & school
+
+@beta_tool
+def add_task(title: str, due: str = "", kind: str = "task", subject: str = "", priority: int = 2, notes: str = "") -> str:
+    """Add a task, homework assignment, test, project or study session to the user's task list.
+    For relative dates ("Friday", "next week") call get_current_time first and work out the date.
+
+    Args:
+        title: What needs doing, e.g. "Chapter 5 worksheet".
+        due: Due date as "YYYY-MM-DD" or "YYYY-MM-DD HH:MM" (24h). Empty if none.
+        kind: One of "task", "assignment", "test", "project", "study".
+        subject: School subject or project name, e.g. "Chemistry" or "Robotics". Optional.
+        priority: 1 high, 2 normal, 3 low.
+        notes: Optional extra details.
+    """
+    item = task_store.add(title, due, kind, subject, priority, notes)
+    return "Added " + task_store.format([item])
+
+
+@beta_tool
+def list_tasks(subject: str = "", kind: str = "", include_done: bool = False) -> str:
+    """List the user's tasks, assignments, tests and deadlines, soonest first, with overdue items flagged.
+    Use for "what's due", "what homework do I have", planning the day, etc.
+
+    Args:
+        subject: Optional filter by subject/project.
+        kind: Optional filter: "task", "assignment", "test", "project", "study".
+        include_done: Also show completed items.
+    """
+    items = task_store.open_items(subject, kind)
+    if include_done:
+        items += [i for i in task_store.items if i["done"] and (not subject or subject.lower() in i["subject"].lower())]
+    if not items:
+        return "No tasks." if include_done else "No open tasks."
+    return task_store.format(items)
+
+
+@beta_tool
+def complete_task(task_id: int) -> str:
+    """Mark a task as done (use list_tasks to find its # id).
+
+    Args:
+        task_id: The task's # id.
+    """
+    item = task_store.set_done(int(task_id))
+    return f"Marked done: {item['title']}." if item else f"No task #{task_id}."
+
+
+@beta_tool
+def delete_task(task_id: int) -> str:
+    """Permanently delete a task. Only when the user clearly asks to delete or remove it (otherwise use complete_task).
+
+    Args:
+        task_id: The task's # id.
+    """
+    item = task_store.delete(int(task_id))
+    return f"Deleted: {item['title']}." if item else f"No task #{task_id}."
+
+
 ALL_TOOLS = [
     get_current_time,
     get_weather,
@@ -447,4 +593,12 @@ ALL_TOOLS = [
     get_system_status,
     take_screenshot,
     system_power,
+    remember,
+    recall,
+    forget,
+    list_all_memories,
+    add_task,
+    list_tasks,
+    complete_task,
+    delete_task,
 ]

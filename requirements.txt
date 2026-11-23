@@ -1,0 +1,11 @@
+# Versions JARVIS is tested with. Install into the project's .venv:
+#   .venv\Scripts\python.exe -m pip install -r requirements.txt
+anthropic==2.10.0            # Claude API + the @beta_tool tool definitions
+claude-agent-sdk==0.2.184    # Claude via your Claude plan (drives the installed Claude Code)
+SpeechRecognition==3.17.0    # microphone -> text
+PyAudio==0.2.14              # microphone access
+edge-tts==7.3.1              # natural neural voice
+psutil==7.2.2                # system status, closing apps
+pillow==13.0.0               # screenshots
+comtypes==1.5.0 ; sys_platform == "win32"    # Windows voice (SAPI) fallback
+pycaw==20260927 ; sys_platform == "win32"    # Windows volume control
