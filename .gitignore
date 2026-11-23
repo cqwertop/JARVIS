@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Personal data and logs - never commit
+data/
+jarvis.log*
+notes.txt
+reminders.json
+.env
+*.key
