@@ -10,3 +10,7 @@ notes.txt
 reminders.json
 .env
 *.key
+
+# Build output
+build/
+dist/

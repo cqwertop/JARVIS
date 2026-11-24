@@ -6,6 +6,7 @@ Built for personal use: Anthropic doesn't allow apps given to other people to ru
 """
 
 import asyncio
+import logging
 import threading
 
 from claude_agent_sdk import (
@@ -21,6 +22,7 @@ from claude_agent_sdk import (
 import tools
 
 SERVER_NAME = "jarvis"
+log = logging.getLogger("jarvis.brain")
 
 
 def _wrap(beta_tool):
@@ -92,7 +94,7 @@ class ProBrain:
             if "limit" in str(exc).lower():
                 raise  # usage limit - reconnecting won't help
             # JARVIS runs for days; if the Claude Code process died, start a fresh one and try once more.
-            print(f"[Claude Code session lost ({exc!r}); reconnecting]")
+            log.warning("Claude Code session lost (%r); reconnecting", exc)
             self.close()
             self._run(self._connect())
             return self._run(self._ask(text))
