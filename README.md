@@ -38,13 +38,6 @@ JARVIS is a personal AI assistant designed to bring intelligent conversation, vo
 |  Multi-model | Local and cloud AI backends |
 |  Automation | Multi-step workflows |
 
-## ◈ Screenshots
-
-<!-- Add actual application screenshots here -->
-
-<p align="center">
-<img src="assets/dashboard.png" width="85%" alt="JARVIS Dashboard">
-</p>
 
 ## ◈ Architecture
 
