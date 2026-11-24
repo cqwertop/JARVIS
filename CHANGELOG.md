@@ -2,6 +2,12 @@
 
 ## Session 2 (2026-11-23), branch `dev/session-1`
 
+### Fixed
+- A hidden panel (right-click → Hide this panel) could only come back by restarting JARVIS. Now **Ctrl+Alt+H**
+  toggles it, and opening JARVIS again (Start menu, Windows search) shows the running copy's panel instead.
+  `install_startup.py` adds a **JARVIS** Start menu entry for source installs.
+- A flaky provider test: the fake server closed connections with unread data, which resets them on Windows.
+
 ### Added
 - **Other companies' AI services:** OpenAI, Google Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI, or any
   OpenAI-compatible API (`providers.py`, `brains.OpenAICompatBrain`, backend `online`). Tools work through standard

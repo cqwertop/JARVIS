@@ -307,6 +307,9 @@ def open_setup(restart_after: bool = False, assistant=None):
         assistant.quit()
 
 
+SHOW_REQUEST = settings_mod.DATA_DIR / "show-panel.request"  # written by a second launch, read by the HUD
+
+
 def claim_single_instance() -> bool:
     """False if another JARVIS is already running (so startup + a manual launch don't make two)."""
     if sys.platform == "win32":
@@ -368,7 +371,13 @@ def main():
     deadline = time.monotonic() + (15 if "--restarted" in sys.argv else 0)
     while not claim_single_instance():
         if time.monotonic() >= deadline:
-            log.info("JARVIS is already running.")
+            # Opened again (Start menu / search / double-click): ask the running JARVIS to show its panel.
+            log.info("JARVIS is already running - asking it to show its panel.")
+            try:
+                settings_mod.DATA_DIR.mkdir(parents=True, exist_ok=True)
+                SHOW_REQUEST.write_text(str(time.time()), encoding="utf-8")
+            except OSError as exc:
+                log.warning("Couldn't reach the running JARVIS: %r", exc)
             return
         time.sleep(0.5)
 
@@ -409,17 +418,21 @@ def main():
                 "Quit JARVIS": assistant.quit,
             }
             hud = Hud(assistant.toggle_mute, assistant.stop_speaking, assistant.talk, s["hotkeys"],
-                      on_text=assistant.submit_text, menu=menu, show_typing=s["listen_mode"] == "text")
+                      on_text=assistant.submit_text, menu=menu, show_typing=s["listen_mode"] == "text",
+                      show_request=SHOW_REQUEST)
             assistant.attach_hud(hud)
         if s["hotkeys"]["enabled"]:
             from hud import start_hotkeys
 
             hk = s["hotkeys"]
-            registered = start_hotkeys({
+            bindings = {
                 "mute": (hk["mute"], assistant.toggle_mute),
                 "stop": (hk["stop"], assistant.stop_speaking),
                 "talk": (hk["talk"], assistant.talk),
-            })
+            }
+            if hud is not None and hud.ok and hk.get("panel"):
+                bindings["panel"] = (hk["panel"], hud.toggle_visible)
+            registered = start_hotkeys(bindings)
             if registered:
                 log.info("Hotkeys: %s", ", ".join(registered))
 

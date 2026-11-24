@@ -52,6 +52,7 @@ someone else, it stays quiet.
 - **Ctrl+Alt+M**: microphone off / on
 - **Ctrl+Alt+S**: stop talking
 - **Ctrl+Alt+J**: talk without saying "Jarvis"
+- **Ctrl+Alt+H**: hide / show the panel (or type **JARVIS** in the Windows search bar and open it)
 
 ### Things to try
 - "What's the weather in Chicago?" / "Play lofi hip hop on YouTube" / "Set the volume to 30"

@@ -40,9 +40,10 @@ class FakeAPI(BaseHTTPRequestHandler):
             self._send(200, {"data": [{"id": i} for i in ids]})
 
     def do_POST(self):
+        # Read the body before answering: on Windows, closing a socket with unread data resets the connection.
+        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         if not self._authorised():
             return
-        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         FakeAPI.requests.append(body)
         if FakeAPI.reject_tools and "tools" in body:
             self._send(400, {"error": {"message": "This model does not support tools"}})

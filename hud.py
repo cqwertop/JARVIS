@@ -33,8 +33,15 @@ MONO_FONT = {"win32": "Consolas", "darwin": "Menlo"}.get(sys.platform, "DejaVu S
 
 class Hud:
     def __init__(self, on_mute, on_stop, on_talk, hotkeys: dict | None = None, on_text=None,
-                 menu: dict | None = None, show_typing: bool = False):
-        """menu: label -> callback for the right-click menu."""
+                 menu: dict | None = None, show_typing: bool = False, show_request=None):
+        """menu: label -> callback for the right-click menu.
+        show_request: a file that, when it appears, means "show the panel" (JARVIS was opened again)."""
+        self._show_request = show_request
+        if show_request is not None:
+            try:
+                show_request.unlink(missing_ok=True)  # an old request from before this start
+            except OSError:
+                pass
         self._q: "queue.Queue[tuple]" = queue.Queue()
         self._callbacks = {"mute": on_mute, "stop": on_stop, "talk": on_talk}
         self._on_text = on_text
@@ -59,6 +66,10 @@ class Hud:
     def set_reply(self, text: str):
         """Show what JARVIS said (useful in noisy places or text mode)."""
         self._q.put(("reply", text, None))
+
+    def toggle_visible(self):
+        """Hide the panel, or bring it back if it is hidden (hotkey; safe from any thread)."""
+        self._q.put(("toggle", None, None))
 
     def close(self):
         self._q.put(("quit", None, None))
@@ -139,7 +150,8 @@ class Hud:
         self._menu = tk.Menu(root, tearoff=0)
         for label, cb in self._menu_items.items():
             self._menu.add_command(label=label, command=lambda cb=cb: self._safe(cb))
-        self._menu.add_command(label="Hide this panel", command=root.withdraw)
+        back = f" ({keys['panel'].title()} brings it back)" if keys.get("panel") else ""
+        self._menu.add_command(label="Hide this panel" + back, command=self._hide)
 
         drag = {}
         for widget in (root, self._canvas, self._title, self._status, self._detail, self._reply):
@@ -158,6 +170,22 @@ class Hud:
         root.update_idletasks()
         w, h = root.winfo_reqwidth(), root.winfo_reqheight()
         root.geometry(f"+{root.winfo_screenwidth() - w - 24}+{root.winfo_screenheight() - h - 72}")
+
+    def _hide(self):
+        self._root.withdraw()
+        log.info("Panel hidden.%s", f" Press {self._hotkeys['panel']} to show it again."
+                 if self._hotkeys.get("panel") else " Restart JARVIS to show it again.")
+
+    def _show(self):
+        root = self._root
+        root.deiconify()
+        # Bring it back onto the screen if it was dragged off it or the display layout changed.
+        root.update_idletasks()
+        x, y = root.winfo_x(), root.winfo_y()
+        if not (0 <= x < root.winfo_screenwidth() - 40 and 0 <= y < root.winfo_screenheight() - 40):
+            self._place()
+        root.attributes("-topmost", True)
+        root.lift()
 
     def _toggle_typing(self, show: bool | None = None):
         visible = bool(self._entry_row.winfo_ismapped())
@@ -190,6 +218,11 @@ class Hud:
                 if kind == "quit":
                     self._root.destroy()
                     return
+                if kind == "toggle":
+                    if self._root.state() == "withdrawn":
+                        self._show()
+                    else:
+                        self._hide()
                 if kind == "muted":
                     self._mute_btn.configure(text="UNMUTE" if value else "MUTE")
                 if kind == "reply":
@@ -208,6 +241,13 @@ class Hud:
                         self._detail.configure(text=self._detail_text)
         except queue.Empty:
             pass
+        if self._show_request is not None and self._show_request.exists():
+            try:
+                self._show_request.unlink()
+            except OSError:
+                pass
+            log.info("JARVIS was opened again - showing the panel.")
+            self._show()
         self._draw()
         # Animate only while something is happening; otherwise redraw rarely to save CPU.
         busy = self._state in ("listening", "thinking", "speaking")

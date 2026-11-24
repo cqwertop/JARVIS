@@ -27,6 +27,7 @@ Still stuck? The log file usually says why. Right-click the panel → **Open my 
 
 | Problem | Fix |
 |---|---|
+| The JARVIS panel disappeared | It's hidden, not closed. Press **Ctrl+Alt+H**, or open JARVIS again from the Start menu / Windows search (it won't start a second copy, it just shows the panel). |
 | JARVIS doesn't react | Check the panel. **MIC OFF** means you're muted (press MUTE or Ctrl+Alt+M). Then check the right microphone is chosen in JARVIS Settings. |
 | The mic level meter in setup doesn't move | Windows: Settings → Privacy → Microphone → allow desktop apps. Mac: System Settings → Privacy & Security → Microphone → turn on JARVIS. |
 | It reacts to the TV or other people | Use **Wake word** mode in Settings, so JARVIS only answers when it hears "Jarvis". |

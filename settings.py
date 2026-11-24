@@ -67,6 +67,7 @@ DEFAULTS: dict = {
         "mute": "ctrl+alt+m",  # turn the microphone off / on
         "stop": "ctrl+alt+s",  # stop JARVIS talking
         "talk": "ctrl+alt+j",  # start listening without saying the name
+        "panel": "ctrl+alt+h",  # hide / show the on-screen panel
     },
     "log_transcripts": True,  # write what you said / JARVIS said to jarvis.log
     "start_at_login": False,  # set by the setup wizard
