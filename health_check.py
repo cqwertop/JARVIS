@@ -126,7 +126,9 @@ def check_log(r: Report, state: dict):
     since = state.get("log_checked_until", "")
     newest = since
     errors: list[str] = []
-    for f in sorted(HERE.glob("jarvis.log*")):
+    import paths
+
+    for f in sorted(paths.LOG_FILE.parent.glob("jarvis.log*")):
         for line in f.read_text(encoding="utf-8", errors="ignore").splitlines():
             m = re.match(r"(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d),\d+ (ERROR|CRITICAL)\s+(.*)", line)
             if m and m.group(1) > since:

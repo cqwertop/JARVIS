@@ -249,6 +249,92 @@ def _strip_think(text: str) -> str:
     return re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()
 
 
+# --------------------------------------------------------------------------- OpenAI-compatible APIs
+
+class OpenAICompatBrain:
+    """OpenAI, Google Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI... any OpenAI-compatible chat API.
+
+    Uses the standard /chat/completions request with function tools, so the same JARVIS tools work.
+    """
+
+    def __init__(self, base_url: str, api_key: str, model: str, system_prompt: str, label: str = "Online AI",
+                 timeout: float = 120, max_history: int = 30):
+        self.base_url, self.api_key, self.model = base_url.rstrip("/"), api_key, model
+        self.system_prompt, self.timeout, self.max_history = system_prompt, timeout, max_history
+        self.name = f"{label} ({model})"
+        self._label = label
+        self.history: list[dict] = []
+        self._tools = {t.name: t for t in tools.ALL_TOOLS}
+        self._tool_specs = [
+            {"type": "function", "function": {"name": t.name, "description": t.description, "parameters": t.input_schema}}
+            for t in tools.ALL_TOOLS
+        ]
+        self._use_tools = True
+
+    def _chat(self, messages: list[dict]) -> dict:
+        import providers
+
+        payload = {"model": self.model, "messages": messages}
+        if self._use_tools:
+            payload["tools"] = self._tool_specs
+        req = urllib.request.Request(
+            self.base_url + "/chat/completions", data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                return json.loads(resp.read())["choices"][0]["message"]
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode(errors="ignore")
+            if self._use_tools and exc.code == 400 and "tool" in body.lower():
+                log.warning("%s does not support tools; continuing without computer control.", self.model)
+                self._use_tools = False
+                return self._chat(messages)
+            raise RuntimeError(providers.explain_http_error(exc.code, body, self._label)) from exc
+
+    def ask(self, text: str) -> str:
+        self.history.append({"role": "user", "content": f"[{dt.datetime.now():%a %d %b %Y %I:%M %p}] {text}"})
+        system = {"role": "system", "content": self.system_prompt}
+        reply = ""
+        for _ in range(10):
+            msg = self._chat([system, *self.history])
+            calls = msg.get("tool_calls") or []
+            entry = {"role": "assistant", "content": msg.get("content") or ""}
+            if calls:
+                entry["tool_calls"] = calls
+            self.history.append(entry)
+            if not calls:
+                reply = msg.get("content") or ""
+                break
+            for call in calls:
+                fn = call.get("function", {})
+                name = fn.get("name", "")
+                try:
+                    args = json.loads(fn.get("arguments") or "{}")
+                except ValueError:
+                    args = {}
+                tool = self._tools.get(name)
+                try:
+                    result = str(tool.call(args)) if tool else f"Unknown tool {name}."
+                except Exception as exc:
+                    result = f"Error: {exc}"
+                self.history.append({"role": "tool", "tool_call_id": call.get("id", name), "content": result})
+        else:
+            reply = "That took more steps than I can manage."
+        self._trim()
+        return _strip_think(reply)
+
+    def _trim(self):
+        if len(self.history) > self.max_history:
+            cut = len(self.history) - self.max_history
+            while cut < len(self.history) and self.history[cut]["role"] != "user":
+                cut += 1
+            self.history = self.history[cut:]
+
+    def close(self):
+        pass
+
+
 # --------------------------------------------------------------------------- fallback
 
 class FallbackBrain:
@@ -304,6 +390,23 @@ def _fallback_notice(exc: Exception) -> str:
 
 # --------------------------------------------------------------------------- factory
 
+def make_online_brain(settings: dict, system_prompt: str):
+    """The brain for settings["online"] (a provider chosen in setup). Raises RuntimeError with a readable message."""
+    import credentials
+    import providers
+
+    online = settings["online"]
+    pid = online.get("provider", "")
+    info = providers.PROVIDERS.get(pid)
+    if not info or info["kind"] != "openai":
+        raise RuntimeError(f"Unknown online AI provider {pid!r}. Open Settings to choose one.")
+    key = credentials.get(providers.credential_name(pid))
+    if not key:
+        raise RuntimeError(f"No {info['label']} API key is saved. Open Settings to add one.")
+    base_url = online.get("base_url") or info["base_url"]
+    return OpenAICompatBrain(base_url, key, online["model"], system_prompt, label=info["label"])
+
+
 def choose_backend(settings: dict, override: str | None = None) -> str:
     backend = override or settings["backend"]
     if backend == "auto":
@@ -325,6 +428,8 @@ def make_brain(settings: dict, backend: str, retry=lambda what, make: make()):
     if backend == "api":
         primary = ApiBrain(settings["claude_model_api"], system_prompt)
         primary.name = "Claude API"
+    elif backend == "online":
+        primary = make_online_brain(settings, system_prompt)
     else:
         from pro_brain import ProBrain
 

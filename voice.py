@@ -86,6 +86,14 @@ class Speaker:
             task.result()
 
         asyncio.run(synth_unless_stopped())
+        if self._stop.is_set():
+            raise _Stopped
+        if not IS_WINDOWS:
+            import platform_support
+
+            if not platform_support.play_audio(self._audio_file, self._stop):
+                raise _Stopped
+            return
         try:
             _mci("close jarvis_audio")
         except RuntimeError:
@@ -146,10 +154,17 @@ class Speaker:
                 except _Stopped:
                     raise
                 except Exception as exc:
-                    if sapi is None:
+                    if IS_WINDOWS and sapi is not None:
+                        log.warning("Neural voice unavailable, using Windows voice: %r", exc)
+                        self._sapi_say(sapi, text)
+                    elif not IS_WINDOWS:
+                        import platform_support
+
+                        log.warning("Neural voice unavailable, using the built-in voice: %r", exc)
+                        if not platform_support.say_offline(text, self._stop):
+                            raise _Stopped
+                    else:
                         raise
-                    log.warning("Neural voice unavailable, using Windows voice: %r", exc)
-                    self._sapi_say(sapi, text)
             except _Stopped:
                 pass
             except Exception as exc:  # never let a speech error kill the thread
@@ -193,13 +208,17 @@ class Speaker:
 
 def chime():
     """Short 'I'm listening' beep."""
-    if IS_WINDOWS:
-        try:
+    try:
+        if IS_WINDOWS:
             import winsound
 
             winsound.Beep(880, 90)
-        except Exception:
-            pass
+        else:
+            import platform_support
+
+            platform_support.beep()
+    except Exception:
+        pass
 
 
 # --------------------------------------------------------------------------- microphone

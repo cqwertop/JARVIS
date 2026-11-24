@@ -2,20 +2,20 @@
 
 **Read this first at the start of every development session.** Update "Status" and "Next up" before you finish.
 
-## Status (end of session 1, 2026-11-23)
+## Status (session 2, 2026-11-23)
 
 | Phase | State |
 |---|---|
 | 1. Repository audit | ✅ Done (findings below) |
 | 2. Stability (logging, errors, tests, git) | ✅ Core done. 46 tests, rotating log, health check |
-| 3. Core intelligence (model abstraction, memory) | 🟡 Claude API / Claude plan / Ollama + fallback, long-term memory done. Missing: streaming, token/cost tracking, conversation summarization |
+| 3. Core intelligence (model abstraction, memory) | 🟡 Claude API / Claude plan / OpenAI-compatible APIs (OpenAI, Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI, custom) / Ollama + fallback, long-term memory done. Missing: streaming, token/cost tracking, conversation summarization |
 | 4. Voice | 🟡 Conversation mode, background filtering, barge-in, mute, HUD done. **Missing: local speech recognition** (needs approval to install) |
 | 5. Desktop automation | 🟡 Existing app/web/media/volume/power tools. Missing: window switching, file management, document reading |
 | 6. Productivity | 🟡 Tasks, school deadlines, reminders done. Missing: calendar, proactive deadline alerts, daily plan |
-| 7. Cross-platform | 🔴 Windows only. Shared code is now guarded, but Linux/macOS adapters are not written or tested |
+| 7. Cross-platform | 🟡 macOS/Linux adapters written (`platform_support.py`) and installers scripted, but **never run on a real Mac or Linux machine**. Next: run the GitHub Actions build, then test on real hardware |
 | 8. Mobile | 🔴 Not started |
 | 9. Plugins, research, smart home | 🔴 Not started |
-| 10. Polish, installer, packaging | 🔴 Not started |
+| 10. Polish, installer, packaging | 🟡 Setup guide (8 screens, keyring, provider keys, real progress) + Windows installer built and tested (install/upgrade/uninstall). Mac .dmg and Linux .deb/.tar.gz scripted, untested. Not signed (paid certificates, ask first) |
 
 ## Audit findings (session 1)
 
@@ -57,17 +57,13 @@ plan takes about 1–11 s.
 
 ## Larger tracks (need design decisions before work starts)
 
-### Graphical installer (directive 2)
-A real cross-platform GUI installer is a substantial project. Proposed approach, which needs the owner's sign-off:
-- Package JARVIS with **PyInstaller** (one folder, bundled Python, no terminal).
-- Use a **web-tech setup wizard** in a pywebview or Tauri window for the polished UI: system check, AI engine
-  choice (Ollama, llama.cpp, Transformers, API), model picker, microphone test and keyring storage.
-- Native wrappers: Inno Setup (`.exe`) on Windows, `.dmg` on macOS, AppImage or `.deb` on Linux.
-- API keys go to OS credential storage via `keyring` (new dependency).
-- ⚠ Important licensing point: the **Claude-plan backend (Claude Code sign-in) is for personal use only**. Anthropic
-  doesn't allow apps distributed to other people to run on someone's plan sign-in. A distributed installer must
-  offer the API key option and local models, not the plan backend.
-- macOS distribution without Gatekeeper warnings needs an Apple Developer ID ($99/yr). ⚠ Paid, so ask first.
+### Installer follow-ups
+- Run `.github/workflows/build.yml` (needs the repo on GitHub, so ask the owner before pushing anywhere) and test the
+  .dmg/.deb on real machines.
+- llama.cpp and Transformers engines are shown as "coming later" in the setup guide.
+- Code signing: a Windows certificate and an Apple Developer ID ($99/yr). ⚠ Paid, so ask first.
+- Auto-update check (currently: download and run the new installer; data is kept).
+- Mobile pairing screen (waits for the mobile companion).
 
 ### Mobile companion
 Android first (Kotlin, foreground service + notification listener), paired over the LAN with a QR code and

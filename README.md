@@ -1,12 +1,21 @@
 # JARVIS
 
 A voice assistant for your PC. Talk to it naturally, and it can open apps, play music, set reminders, keep track
-of homework and deadlines, remember things about you and your projects, and answer questions using Claude
-(or a local AI model when you're offline or out of Claude usage).
+of homework and deadlines, remember things about you and your projects, and answer questions using Claude, ChatGPT
+(OpenAI), Gemini and other online AI services, or a local AI model that runs on your own computer.
 
-**Works on:** Windows 10/11 (tested). Linux and macOS are **not supported yet** (see [ROADMAP.md](ROADMAP.md)).
+**Works on:** Windows 10/11 (tested). Installers for macOS and Linux are built from the same code, but they
+**haven't been tested on real Mac or Linux machines yet**.
 
-## Starting JARVIS
+## Installing
+
+Download the installer for your computer and follow **[docs/INSTALLATION.md](docs/INSTALLATION.md)**. A setup guide
+then helps you choose an AI, test your microphone and pick a voice. To get an API key (OpenAI, Anthropic, Google
+Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI or any OpenAI-compatible service), see
+**[docs/AI-SERVICES.md](docs/AI-SERVICES.md)**. If something goes wrong, see
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## Starting JARVIS from source (developers)
 
 - Double-click **`start_jarvis.bat`**, or
 - Run `.venv\Scripts\python.exe install_startup.py` once so JARVIS starts by itself whenever you log in.
@@ -76,7 +85,8 @@ default is listed (with explanations) at the top of [`settings.py`](settings.py)
 | Backend | When | Cost |
 |---|---|---|
 | Your Claude plan (default) | Claude Code is installed and signed in | Counts toward your plan's usage limits |
-| Claude API | `ANTHROPIC_API_KEY` is set | Pay per use (separate from a Claude subscription) |
+| Claude API | `ANTHROPIC_API_KEY` is set, or a key saved in setup | Pay per use (separate from a Claude subscription) |
+| Another company's API (`online`) | Chosen in setup: OpenAI, Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI, or any OpenAI-compatible service | Set by that company; some have free tiers |
 | Local model (Ollama) | `--backend ollama`, or **automatically** when Claude is unreachable or out of usage | Free, private, works offline |
 
 The local model (`qwen3:8b`) runs on your processor, so it's slow. The first answer takes about 2 minutes while it
@@ -84,7 +94,10 @@ loads, and later answers take 10–20 seconds. It works, but Claude is much fast
 
 ## Your data and privacy
 
-Everything personal is kept in the **`data/`** folder on this PC. That folder is never uploaded to git.
+Everything personal stays on this computer. Running from source, it's in the **`data/`** folder, which is never
+uploaded to git. The installed app keeps it in `%LOCALAPPDATA%\JARVIS` (Windows),
+`~/Library/Application Support/JARVIS` (Mac) or `~/.local/share/jarvis` (Linux). API keys are kept only in the
+operating system's password storage, never in a file.
 
 - `memory.json`: what JARVIS remembers (you can read, edit or delete it, or ask JARVIS to)
 - `tasks.json`, `reminders.json`, `notes.txt`: your lists
@@ -107,6 +120,8 @@ Reports are saved in `data/health/`.
 ## For developers
 
 - Run tests: `.venv\Scripts\python.exe -m unittest discover -s tests -t .`
+- Build the installers: [docs/BUILDING.md](docs/BUILDING.md)
+- Open the setup guide from source: `.venv\Scripts\python.exe jarvis_app.py --setup`
 - Text mode (no microphone): `start_jarvis.bat --text` (add `--no-speech` to skip the voice)
 - How it fits together: [ARCHITECTURE.md](ARCHITECTURE.md). What's next: [ROADMAP.md](ROADMAP.md). History: [CHANGELOG.md](CHANGELOG.md).
 - To add an ability, write a function in `tools.py` with `@beta_tool` and add it to `ALL_TOOLS`. All three AI

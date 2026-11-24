@@ -3,9 +3,7 @@
 import logging
 import logging.handlers
 import sys
-from pathlib import Path
-
-LOG_FILE = Path(__file__).resolve().parent / "jarvis.log"
+from paths import LOG_FILE
 FORMAT = "%(asctime)s %(levelname)-7s %(name)s: %(message)s"
 
 
@@ -34,6 +32,7 @@ def setup(to_file: bool, verbose: bool = False) -> logging.Logger:
     for h in list(root.handlers):
         root.removeHandler(h)
     if to_file:
+        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
         handler: logging.Handler = logging.handlers.RotatingFileHandler(
             LOG_FILE, maxBytes=1_000_000, backupCount=3, encoding="utf-8"
         )

@@ -10,8 +10,8 @@ import json
 import logging
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-DATA_DIR = HERE / "data"
+from paths import DATA_DIR
+
 SETTINGS_FILE = DATA_DIR / "settings.json"
 
 log = logging.getLogger("jarvis.settings")
@@ -25,16 +25,23 @@ DEFAULTS: dict = {
     #   wake_word     - every command must include "Jarvis"
     #   always        - everything heard goes to JARVIS, which ignores speech not meant for it (uses more AI usage)
     #   push_to_talk  - the microphone only opens when you press the talk hotkey / HUD button
+    #   text          - microphone never used; type to JARVIS in the on-screen panel
     "listen_mode": "conversation",
+    # Microphone to use (name as the system lists it). Empty = the system default.
+    "microphone_name": "",
     # In conversation mode: how long after JARVIS answers you can follow up without saying its name.
     "follow_up_seconds": 20,
     # Let "stop" / "Jarvis, ..." cut JARVIS off while it's talking.
     "barge_in": True,
     # Short beep when JARVIS starts listening for a command.
     "listen_chime": True,
-    # Which AI to use: auto (Claude API if ANTHROPIC_API_KEY is set, else your Claude plan), api, pro, ollama
+    # Which AI to use: auto (Claude API if ANTHROPIC_API_KEY is set, else your Claude plan), api (Claude API key),
+    # pro (Claude plan via Claude Code), online (another company's API, see "online"), ollama (local model)
     "backend": "auto",
     "claude_model_api": "claude-sonnet-5-5",
+    # For backend "online": provider id from providers.py (openai, gemini, openrouter, groq, mistral, deepseek,
+    # xai, custom), the model, and (custom only) the service's base URL. The key itself is in the OS keyring.
+    "online": {"provider": "", "model": "", "base_url": ""},
     "claude_model_pro": "sonnet",
     # If Claude is unreachable or out of usage, answer with the local Ollama model instead.
     "fallback_to_ollama": True,
@@ -62,7 +69,11 @@ DEFAULTS: dict = {
         "talk": "ctrl+alt+j",  # start listening without saying the name
     },
     "log_transcripts": True,  # write what you said / JARVIS said to jarvis.log
+    "start_at_login": False,  # set by the setup wizard
+    "setup_complete": False,  # the installed app shows the setup wizard until this is true
 }
+
+LISTEN_MODES = ("conversation", "wake_word", "always", "push_to_talk", "text")
 
 
 def _merge(base: dict, override: dict) -> dict:
@@ -100,7 +111,30 @@ def load(path: Path = SETTINGS_FILE) -> dict:
         except OSError:
             pass
     merged = _merge(DEFAULTS, user)
-    if merged["listen_mode"] not in ("conversation", "wake_word", "always", "push_to_talk"):
+    if merged["listen_mode"] not in LISTEN_MODES:
         log.error("Unknown listen_mode %r - using 'conversation'.", merged["listen_mode"])
         merged["listen_mode"] = "conversation"
     return merged
+
+
+def update(changes: dict, path: Path = SETTINGS_FILE) -> dict:
+    """Merge `changes` into the user's settings file, keeping everything else they set. Returns the new file content."""
+    current: dict = {}
+    if path.exists():
+        try:
+            current = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(current, dict):
+                current = {}
+        except (ValueError, OSError):
+            backup = path.with_suffix(".corrupt.json")
+            try:
+                backup.write_bytes(path.read_bytes())
+            except OSError:
+                pass
+            current = {}
+    current = _merge(current, changes) if current else dict(changes)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(current, indent=2), encoding="utf-8")
+    tmp.replace(path)
+    return current

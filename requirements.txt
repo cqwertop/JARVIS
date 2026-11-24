@@ -7,5 +7,6 @@ PyAudio==0.2.14              # microphone access
 edge-tts==7.3.1              # natural neural voice
 psutil==7.2.2                # system status, closing apps
 pillow==13.0.0               # screenshots
+keyring==25.7.0              # API keys in the OS password store (Credential Manager / Keychain / Secret Service)
 comtypes==1.5.0 ; sys_platform == "win32"    # Windows voice (SAPI) fallback
 pycaw==20260927 ; sys_platform == "win32"    # Windows volume control

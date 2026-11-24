@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=JARVIS
+Comment=Your personal voice assistant
+Exec=@EXEC@
+Icon=jarvis
+Terminal=false
+Categories=Utility;
+Actions=Settings;
+
+[Desktop Action Settings]
+Name=JARVIS Settings
+Exec=@EXEC@ --setup

@@ -25,8 +25,12 @@ import sys
 import threading
 import time
 
+import queue
+
 import brains
 import conversation as conv
+import credentials
+import paths
 import jarvis_log
 import settings as settings_mod
 import tools
@@ -65,8 +69,9 @@ class Assistant:
         self.mode = settings["listen_mode"]
         self.wake_words = settings["wake_words"]
         self.state = conv.ConversationState(settings["follow_up_seconds"])
-        self.muted = self.mode == "push_to_talk"
+        self.muted = self.mode in ("push_to_talk", "text")
         self.talk_requested = threading.Event()
+        self.typed: "queue.Queue[str]" = queue.Queue()
         self.running = True
         self.hud = None
         self._hud_state = None
@@ -74,7 +79,20 @@ class Assistant:
         self._last_status_write = 0.0
 
     # ------------------------------------------------------------------ controls (HUD buttons / hotkeys)
+    def submit_text(self, text: str):
+        """A message typed into the on-screen panel. Handled by the main loop, in order."""
+        self.speaker.stop()
+        self.typed.put(text)
+        self.talk_requested.set()  # wake the loop if it's idle
+
+    def quit(self):
+        self.running = False
+        self.speaker.stop()
+        self.talk_requested.set()
+
     def toggle_mute(self):
+        if self.mode == "text":
+            return
         if self.mode == "push_to_talk":
             self.talk()
             return
@@ -91,6 +109,8 @@ class Assistant:
 
     def talk(self):
         """Listen for one command without needing the wake word (works even while muted)."""
+        if self.mode == "text":
+            return
         self.speaker.stop()
         self.talk_requested.set()
 
@@ -161,13 +181,17 @@ class Assistant:
         listener = Listener(device_index=self.mic_index)
         self.speaker.say(f"{self.s['assistant_name']} online.")
         while self.running:
+            if self._handle_typed(listener):
+                continue
             if self.talk_requested.is_set():
                 self.talk_requested.clear()
-                self._start_listening_for_command()
+                if self.mode != "text":
+                    self._start_listening_for_command()
             mic_allowed = not self.muted or self.state.awaiting_command
             if not mic_allowed:
                 listener.close()
-                self._show("push_to_talk" if self.mode == "push_to_talk" else "muted")
+                idle = {"push_to_talk": "push_to_talk", "text": "text"}.get(self.mode, "muted")
+                self._show(idle)
                 self.talk_requested.wait(0.3)
                 continue
             self._show("listening" if self.state.active else "standby")
@@ -183,6 +207,20 @@ class Assistant:
             if heard:
                 self.process(heard, listener)
         listener.close()
+
+    def _handle_typed(self, listener) -> bool:
+        try:
+            text = self.typed.get_nowait()
+        except queue.Empty:
+            return False
+        if conv.is_goodbye(text):
+            self.speaker.say("Goodbye.")
+            self.running = False
+            return True
+        reply = self.think(text)
+        if reply:
+            self.speak(reply, listener, barge_in=False)
+        return True
 
     def _start_listening_for_command(self):
         self.state.heard_wake_word()
@@ -214,11 +252,13 @@ class Assistant:
             return
         self.speak(reply, listener)
 
-    def speak(self, reply: str, listener: Listener):
+    def speak(self, reply: str, listener: Listener, barge_in: bool = True):
         """Say the reply. With barge-in on, keep listening so the user can cut in."""
+        if self.hud:
+            self.hud.set_reply(reply)
         self.speaker.say(reply, wait=False)
         interruption = None
-        if self.s["barge_in"]:
+        if barge_in and self.s["barge_in"] and not self.muted:
             time.sleep(0.15)
             while self.speaker.speaking and not self.muted:
                 try:
@@ -240,6 +280,31 @@ class Assistant:
             follow = self.think(interruption.command)
             if follow:
                 self.speak(follow, listener)
+
+
+def open_folder(path):
+    path.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        os.startfile(path)
+    else:
+        import platform_support
+
+        platform_support.open_path(str(path))
+
+
+def open_setup(restart_after: bool = False, assistant=None):
+    """Open the setup wizard in its own process. JARVIS restarts afterwards so new settings apply."""
+    import subprocess
+
+    if paths.FROZEN:
+        cmd = [sys.executable, "--setup"]
+    else:
+        cmd = [sys.executable, str(paths.APP_DIR / "jarvis_app.py"), "--setup"]
+    if restart_after:
+        cmd.append("--restart-jarvis")
+    subprocess.Popen(cmd)
+    if restart_after and assistant:
+        assistant.quit()
 
 
 def claim_single_instance() -> bool:
@@ -280,14 +345,17 @@ def main():
     parser.add_argument("--no-speech", action="store_true", help="text mode: print replies without speaking them")
     parser.add_argument("--mic", type=int, default=None, help="microphone device index (see --list-mics)")
     parser.add_argument("--list-mics", action="store_true", help="list microphones and exit")
-    parser.add_argument("--backend", choices=["auto", "pro", "api", "ollama"], default=None,
+    parser.add_argument("--backend", choices=["auto", "pro", "api", "online", "ollama"], default=None,
                         help="pro = Claude plan via Claude Code; api = ANTHROPIC_API_KEY; ollama = local model")
-    parser.add_argument("--mode", choices=["conversation", "wake_word", "always", "push_to_talk"], default=None,
+    parser.add_argument("--mode", choices=list(settings_mod.LISTEN_MODES), default=None,
                         help="how JARVIS decides you're talking to it (overrides settings)")
     parser.add_argument("--log", action="store_true", help="write output to jarvis.log (used when started with Windows)")
     parser.add_argument("--verbose", action="store_true", help="more detailed logging")
+    parser.add_argument("--restarted", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
+    if paths.FROZEN and not args.text:
+        args.log = True  # the installed app has no console window
     jarvis_log.setup(to_file=args.log, verbose=args.verbose)
     if args.log:
         log.info("===== JARVIS starting =====")
@@ -297,14 +365,23 @@ def main():
             print(i, name)
         return
 
-    if not claim_single_instance():
-        log.info("JARVIS is already running.")
-        return
+    deadline = time.monotonic() + (15 if "--restarted" in sys.argv else 0)
+    while not claim_single_instance():
+        if time.monotonic() >= deadline:
+            log.info("JARVIS is already running.")
+            return
+        time.sleep(0.5)
 
     s = settings_mod.load()
     if args.mode:
         s["listen_mode"] = args.mode
     tools.init(s)
+    credentials.load_into_environment()
+    if args.mic is None and s["microphone_name"]:
+        names = list_microphones()
+        args.mic = next((i for i, n in enumerate(names) if n == s["microphone_name"]), None)
+        if args.mic is None:
+            log.warning("Microphone %r not found - using the default one.", s["microphone_name"])
 
     speaker = Speaker.from_settings(s["voice"])
     if args.no_speech:
@@ -314,6 +391,7 @@ def main():
 
     backend = brains.choose_backend(s, args.backend)
     log.info("AI: %s. Starting up...", {"pro": "your Claude plan via Claude Code", "api": "the Claude API",
+                                        "online": f"{s['online']['provider']} {s['online']['model']}",
                                         "ollama": f"local model {s['ollama_model']}"}[backend])
     brain = brains.make_brain(s, backend, retry=retry)
     assistant = Assistant(s, brain, speaker, args.mic)
@@ -325,7 +403,13 @@ def main():
         if s["hud"]:
             from hud import Hud
 
-            hud = Hud(assistant.toggle_mute, assistant.stop_speaking, assistant.talk, s["hotkeys"])
+            menu = {
+                "Settings...": lambda: open_setup(restart_after=True, assistant=assistant),
+                "Open my JARVIS data folder": lambda: open_folder(settings_mod.DATA_DIR),
+                "Quit JARVIS": assistant.quit,
+            }
+            hud = Hud(assistant.toggle_mute, assistant.stop_speaking, assistant.talk, s["hotkeys"],
+                      on_text=assistant.submit_text, menu=menu, show_typing=s["listen_mode"] == "text")
             assistant.attach_hud(hud)
         if s["hotkeys"]["enabled"]:
             from hud import start_hotkeys

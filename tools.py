@@ -24,6 +24,7 @@ import psutil
 from anthropic import beta_tool
 
 import memory as memory_mod
+import platform_support
 import tasks as tasks_mod
 from settings import DATA_DIR
 
@@ -142,11 +143,13 @@ _ALIASES = {
 
 @beta_tool
 def open_application(name: str) -> str:
-    """Open/launch an application installed on this Windows PC (e.g. Chrome, Spotify, Word, Notepad, Discord, Steam).
+    """Open/launch an application installed on this computer (e.g. Chrome, Spotify, Word, VS Code, Discord, Steam).
 
     Args:
         name: The app's name as a person would say it.
     """
+    if not IS_WINDOWS:
+        return platform_support.open_application(name)
     key = name.lower().strip()
     if key in _ALIASES:
         os.startfile(_ALIASES[key])
@@ -250,6 +253,9 @@ def set_volume(level: int) -> str:
         level: Volume from 0 to 100.
     """
     level = max(0, min(100, int(level)))
+    if not IS_WINDOWS:
+        platform_support.set_volume(level)
+        return f"Volume set to {level} percent."
     vol = _speakers()
     vol.SetMute(0, None)
     vol.SetMasterVolumeLevelScalar(level / 100, None)
@@ -259,6 +265,9 @@ def set_volume(level: int) -> str:
 @beta_tool
 def get_volume() -> str:
     """Get the current master volume and whether it's muted."""
+    if not IS_WINDOWS:
+        level, muted = platform_support.get_volume()
+        return f"Volume is {level} percent, muted: {muted}."
     vol = _speakers()
     return f"Volume is {round(vol.GetMasterVolumeLevelScalar() * 100)} percent, muted: {bool(vol.GetMute())}."
 
@@ -270,7 +279,10 @@ def set_mute(muted: bool) -> str:
     Args:
         muted: True to mute, False to unmute.
     """
-    _speakers().SetMute(1 if muted else 0, None)
+    if IS_WINDOWS:
+        _speakers().SetMute(1 if muted else 0, None)
+    else:
+        platform_support.set_mute(bool(muted))
     return "Muted." if muted else "Unmuted."
 
 
@@ -287,6 +299,8 @@ def media_control(action: str) -> str:
     code = _MEDIA_KEYS.get(action)
     if code is None:
         return f"Unknown action {action}. Use one of {list(_MEDIA_KEYS)}."
+    if not IS_WINDOWS:
+        return platform_support.media_control(action)
     ctypes.windll.user32.keybd_event(code, 0, 0, 0)
     ctypes.windll.user32.keybd_event(code, 0, 2, 0)
     return f"Sent {action}."
@@ -423,6 +437,8 @@ def take_screenshot() -> str:
     from PIL import ImageGrab
 
     folder = Path.home() / "Pictures" / "JARVIS Screenshots"
+    if sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
+        return "Screenshots aren't supported on this Linux desktop yet (needs an X11 session)."
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"screenshot_{dt.datetime.now():%Y-%m-%d_%H-%M-%S}.png"
     ImageGrab.grab(all_screens=True).save(path)
@@ -437,6 +453,8 @@ def system_power(action: str) -> str:
     Args:
         action: One of "lock", "sleep", "shutdown", "restart", "cancel_shutdown".
     """
+    if not IS_WINDOWS:
+        return platform_support.power(action)
     if action == "lock":
         ctypes.windll.user32.LockWorkStation()
         return "Locked."

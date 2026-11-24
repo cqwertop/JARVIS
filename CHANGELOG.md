@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 2 (2026-11-23), branch `dev/session-1`
+
+### Added
+- **Other companies' AI services:** OpenAI, Google Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI, or any
+  OpenAI-compatible API (`providers.py`, `brains.OpenAICompatBrain`, backend `online`). Tools work through standard
+  function calling. Models without tool support still talk. API errors are explained in plain words.
+- **Setup guide** (`installer/jarvis_setup.py`): system check, AI choice with a provider picker, official key
+  links, free key check, model list, microphone test, voice samples, listening modes, real download progress with
+  Retry/Skip/Cancel. Keys go to the OS keyring (`credentials.py`).
+- **Packaged app** (`jarvis_app.py`, `packaging/jarvis.spec`) with `--selftest`, `--setup` and `--remove-user-data`.
+- **Windows installer** (Inno Setup): per-user, no admin, Start menu and desktop shortcuts, optional start at login,
+  upgrades keep data, and the uninstaller asks before deleting data.
+- **macOS and Linux:** `platform_support.py` adapters, the `.dmg` build script, `.deb` and `.tar.gz` build scripts,
+  and a GitHub Actions workflow. **Untested on real machines.**
+- Per-user data folders (`paths.py`), `JARVIS_HOME` override, icons, version info.
+- Beginner docs: `docs/INSTALLATION.md`, `docs/AI-SERVICES.md`, `docs/TROUBLESHOOTING.md`, `docs/BUILDING.md`.
+- Tests for providers and the OpenAI-compatible brain (fake local server). 53 tests in total.
+
+### Changed
+- The "Claude plan" option is only offered when running from source (personal use), not in packaged installers.
+
 ## Session 1 (2026-11-23), branch `dev/session-1`
 
 ### Added
