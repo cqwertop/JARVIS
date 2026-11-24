@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MSIX package description. packaging\build_msix.ps1 fills in __VERSION__. -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap5 desktop6 rescap">
+
+  <Identity Name="JARVIS.VoiceAssistant" Publisher="CN=JARVIS Project" Version="__VERSION__" ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>JARVIS</DisplayName>
+    <PublisherDisplayName>JARVIS Project</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <!-- Write straight to %LOCALAPPDATA%\JARVIS and HKCU instead of a private per-package copy, so settings are
+         shared with the regular installer build and the start-at-login Run entry really takes effect. -->
+    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
+    <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="JARVIS" Executable="JARVIS.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="JARVIS" Description="JARVIS voice assistant"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <!-- A "jarvis" command (Win+R or a terminal). Start at login also uses it, because Windows doesn't
+             let anything start the packaged JARVIS.exe by its file path. -->
+        <uap5:Extension Category="windows.appExecutionAlias" Executable="JARVIS.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap5:AppExecutionAlias>
+            <uap5:ExecutionAlias Alias="jarvis.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+    <DeviceCapability Name="microphone" />
+  </Capabilities>
+</Package>

@@ -6,6 +6,7 @@ nothing here installs Python packages. (Friendly-error approach from the origina
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -262,6 +263,11 @@ def speak_sample(voice: str, text: str = "Hello! I'm JARVIS, your personal assis
 # --------------------------------------------------------------------------- start at login
 
 def jarvis_command() -> list[str]:
+    if paths.FROZEN and sys.platform == "win32" and "\\WindowsApps\\" in sys.executable:
+        # Installed from the MSIX bundle: Windows won't start the packaged exe by its path, so use the
+        # "jarvis" command the package adds (see packaging/msix/AppxManifest.xml).
+        return [str(Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+                    / "Microsoft" / "WindowsApps" / "jarvis.exe")]
     if paths.FROZEN:
         return [sys.executable]
     return [sys.executable, str(paths.APP_DIR / "main.py"), "--log"]

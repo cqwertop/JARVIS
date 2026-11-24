@@ -5,6 +5,7 @@ Each platform has to be built **on that platform**. PyInstaller can't cross-comp
 | Platform | Command | Output (in `dist/`) | Tested? |
 |---|---|---|---|
 | Windows | `powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1` | `JARVIS-Setup-<v>.exe` + `.sha256` | ✅ Built and tested: silent install, self-test, upgrade, uninstall |
+| Windows (MSIX) | `powershell -ExecutionPolicy Bypass -File packaging\build_msix.ps1 [-Rebuild]` | `JARVIS-<v>.msixbundle` + `JARVIS.cer` | ⚠ Manifest checked by makeappx; full app not yet installed from the bundle |
 | macOS | `bash packaging/build_macos.sh` | `JARVIS.app`, `JARVIS-<v>-macOS-<arch>.dmg` | ⚠ Script written, never run |
 | Linux | `xvfb-run bash packaging/build_linux.sh` (or without `xvfb-run` on a desktop) | `.tar.gz` + `.deb` | ⚠ Script written, never run |
 
@@ -40,3 +41,8 @@ downloadable artifacts on the run's page. Nothing is published automatically.
 - **Not done, and these cost money (ask the owner first):** Windows code signing (removes the SmartScreen warning) and
   an Apple Developer ID for notarization ($99/yr, removes the macOS "can't check" warning).
 - Bump the version in `version.py` **and** `packaging/windows/version_info.txt`.
+- **MSIX bundle:** signed with a self-signed certificate (`CN=JARVIS Project`), created in your user certificate
+  store on the first build and reused after that. Windows only installs the bundle on PCs that trust `JARVIS.cer`:
+  import it into **Local Machine > Trusted People** (needs admin), then double-click the `.msixbundle`. The package
+  turns off file and registry write virtualization, so it uses the same `%LOCALAPPDATA%\JARVIS` data folder and
+  Run-key start-at-login as the Inno Setup build. It adds a `jarvis` command, which start-at-login uses.

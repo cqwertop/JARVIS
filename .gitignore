@@ -14,3 +14,6 @@ reminders.json
 # Build output
 build/
 dist/
+
+# MSIX build tools (downloaded by packaging/build_msix.ps1)
+packaging/msix/.tools/
