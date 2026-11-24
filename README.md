@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="assets/jarvis-banner.png" width="100%" alt="JARVIS Banner">
+<img src="https://images.openai.com/static-rsc-4/pqi3gwzh9VkQbUcjdwhiosMbTytsglIqQtxX5LuKGDEqRZyUR-KSshOcipev1-IqhQnwksn-9DZX93C7WlRIKJ5iqKP8Suy3kTXqkRgYOF7c-BsBOIfSyciDfXZyekawTBqfQYFus_7AIyZ2_iV7WxYhqyJjn4-cH0tsNEH4SPHJTP8Nh_kuH1rp3OiIxu1-?purpose=fullsize" width="100%" alt="JARVIS Banner">
 
 # J.A.R.V.I.S.
 
