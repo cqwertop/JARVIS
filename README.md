@@ -82,10 +82,6 @@ Installation instructions are coming soon.
 
 Contributions, suggestions, and bug reports are welcome.
 
-## ◈ License
-
-Add your project's actual license here.
-
 ---
 
 <div align="center">
