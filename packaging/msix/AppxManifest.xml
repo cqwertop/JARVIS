@@ -8,13 +8,13 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap uap5 desktop6 rescap">
 
-  <Identity Name="JARVIS.VoiceAssistant" Publisher="CN=JARVIS Project" Version="__VERSION__" ProcessorArchitecture="x64" />
+  <Identity Name="KAIRO.VoiceAssistant" Publisher="CN=KAIRO Project" Version="__VERSION__" ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>JARVIS</DisplayName>
-    <PublisherDisplayName>JARVIS Project</PublisherDisplayName>
+    <DisplayName>KAIRO</DisplayName>
+    <PublisherDisplayName>KAIRO Project</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
-    <!-- Write straight to %LOCALAPPDATA%\JARVIS and HKCU instead of a private per-package copy, so settings are
+    <!-- Write straight to %LOCALAPPDATA%\KAIRO and HKCU instead of a private per-package copy, so settings are
          shared with the regular installer build and the start-at-login Run entry really takes effect. -->
     <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
     <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
@@ -29,17 +29,17 @@
   </Resources>
 
   <Applications>
-    <Application Id="JARVIS" Executable="JARVIS.exe" EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements DisplayName="JARVIS" Description="JARVIS voice assistant"
+    <Application Id="KAIRO" Executable="KAIRO.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="KAIRO" Description="KAIRO voice assistant"
                           BackgroundColor="transparent"
                           Square150x150Logo="Assets\Square150x150Logo.png"
                           Square44x44Logo="Assets\Square44x44Logo.png" />
       <Extensions>
-        <!-- A "jarvis" command (Win+R or a terminal). Start at login also uses it, because Windows doesn't
-             let anything start the packaged JARVIS.exe by its file path. -->
-        <uap5:Extension Category="windows.appExecutionAlias" Executable="JARVIS.exe" EntryPoint="Windows.FullTrustApplication">
+        <!-- A "kairo" command (Win+R or a terminal). Start at login also uses it, because Windows doesn't
+             let anything start the packaged KAIRO.exe by its file path. -->
+        <uap5:Extension Category="windows.appExecutionAlias" Executable="KAIRO.exe" EntryPoint="Windows.FullTrustApplication">
           <uap5:AppExecutionAlias>
-            <uap5:ExecutionAlias Alias="jarvis.exe" />
+            <uap5:ExecutionAlias Alias="kairo.exe" />
           </uap5:AppExecutionAlias>
         </uap5:Extension>
       </Extensions>

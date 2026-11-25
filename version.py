@@ -1,3 +1,3 @@
-__version__ = "0.9.0"
-APP_NAME = "JARVIS"
-PUBLISHER = "JARVIS Project"
+__version__ = "0.9.1"
+APP_NAME = "KAIRO"
+PUBLISHER = "KAIRO Project"

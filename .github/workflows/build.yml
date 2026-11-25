@@ -1,4 +1,4 @@
-# Builds the JARVIS installers for Windows, macOS and Linux on GitHub's computers.
+# Builds the KAIRO installers for Windows, macOS and Linux on GitHub's computers.
 # Runs when started by hand (Actions tab > Build installers > Run workflow) or when a version tag (v0.9.0) is pushed.
 # The finished installers appear as downloadable "artifacts" on the run's page. Nothing is published automatically.
 name: Build installers
@@ -29,8 +29,8 @@ jobs:
         run: powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1
       - uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-windows
-          path: dist/JARVIS-Setup-*
+          name: KAIRO-windows
+          path: dist/KAIRO-Setup-*
 
   macos:
     strategy:
@@ -47,7 +47,7 @@ jobs:
         run: PYTHON=python3 bash packaging/build_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-macos-${{ matrix.runner }}
+          name: KAIRO-macos-${{ matrix.runner }}
           path: dist/*.dmg*
 
   linux:
@@ -63,7 +63,7 @@ jobs:
         run: PYTHON=python3 xvfb-run -a bash packaging/build_linux.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-linux
+          name: KAIRO-linux
           path: |
             dist/*.tar.gz*
             dist/*.deb*

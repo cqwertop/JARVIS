@@ -1,12 +1,12 @@
-"""Makes JARVIS start automatically (hidden, in the background) when you log in to Windows.
+"""Makes KAIRO start automatically (hidden, in the background) when you log in to Windows.
 
-    .venv\\Scripts\\python.exe install_startup.py            add JARVIS to startup + the Start menu, and start it now
-    .venv\\Scripts\\python.exe install_startup.py --remove   take JARVIS out of startup and the Start menu
+    .venv\\Scripts\\python.exe install_startup.py            add KAIRO to startup + the Start menu, and start it now
+    .venv\\Scripts\\python.exe install_startup.py --remove   take KAIRO out of startup and the Start menu
 
-It puts a small launcher, JARVIS.vbs, in your Startup folder. That runs main.py with no window.
-It also adds "JARVIS" to the Start menu, so you can type JARVIS in the Windows search bar to start it, or to bring
-its panel back if you hid it. Output goes to jarvis.log in this folder.
-To stop JARVIS, say "goodbye Jarvis" (or right-click its panel -> Quit JARVIS).
+It puts a small launcher, KAIRO.vbs, in your Startup folder. That runs main.py with no window.
+It also adds "KAIRO" to the Start menu, so you can type KAIRO in the Windows search bar to start it, or to bring
+its panel back if you hid it. Output goes to kairo.log in this folder.
+To stop KAIRO, say "goodbye Kairo" (or right-click its panel -> Quit KAIRO).
 """
 
 import os
@@ -17,13 +17,13 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PROGRAMS = Path(os.environ["APPDATA"]) / "Microsoft" / "Windows" / "Start Menu" / "Programs"
 STARTUP = PROGRAMS / "Startup"
-LAUNCHER = STARTUP / "JARVIS.vbs"
-SHORTCUT = PROGRAMS / "JARVIS.lnk"
-ICON = HERE / "packaging" / "assets" / "jarvis.ico"
+LAUNCHER = STARTUP / "KAIRO.vbs"
+SHORTCUT = PROGRAMS / "KAIRO.lnk"
+ICON = HERE / "packaging" / "assets" / "kairo.ico"
 PYTHON = HERE / ".venv" / "Scripts" / "python.exe"
 
 # Window style 0 = hidden. Using python.exe (not pythonw) inside a hidden console means the programs
-# JARVIS starts (Claude Code, PowerShell) share that hidden console instead of flashing windows.
+# KAIRO starts (Claude Code, PowerShell) share that hidden console instead of flashing windows.
 VBS = f'''Set shell = CreateObject("WScript.Shell")
 shell.CurrentDirectory = "{HERE}"
 shell.Run """{PYTHON}"" ""{HERE / 'main.py'}"" --log", 0, False
@@ -41,7 +41,7 @@ def make_shortcut():
         f"$s.TargetPath = {q(wscript)}; "
         f"$s.Arguments = {q(chr(34) + str(LAUNCHER) + chr(34))}; "
         f"$s.WorkingDirectory = {q(HERE)}; "
-        f"$s.Description = 'JARVIS voice assistant'; "
+        f"$s.Description = 'KAIRO voice assistant'; "
         + (f"$s.IconLocation = {q(ICON)}; " if ICON.exists() else "")
         + "$s.Save()"
     )
@@ -57,14 +57,14 @@ def main():
     if "--remove" in sys.argv:
         LAUNCHER.unlink(missing_ok=True)
         SHORTCUT.unlink(missing_ok=True)
-        print("JARVIS removed from startup and the Start menu.")
+        print("KAIRO removed from startup and the Start menu.")
         return
     LAUNCHER.write_text(VBS, encoding="utf-8")
     print(f"Installed: {LAUNCHER}")
     make_shortcut()
     subprocess.Popen(["wscript.exe", str(LAUNCHER)])
-    print("JARVIS is starting in the background. Say 'Jarvis' when you need it.")
-    print("Hid the panel? Type JARVIS in the Windows search bar and open it, or press Ctrl+Alt+H.")
+    print("KAIRO is starting in the background. Say 'Kairo' when you need it.")
+    print("Hid the panel? Type KAIRO in the Windows search bar and open it, or press Ctrl+Alt+H.")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 Speaker: natural Microsoft neural voice via edge-tts (needs internet), falling back to the built-in
 Windows voice (SAPI). Speech runs on one background thread and can be interrupted with stop().
 
-Listener: keeps the microphone open while JARVIS is listening and fully closes it when muted, so
+Listener: keeps the microphone open while KAIRO is listening and fully closes it when muted, so
 nothing is recorded while muted. Audio is never saved to disk.
 """
 
@@ -19,7 +19,7 @@ import random
 
 import speech_recognition as sr
 
-log = logging.getLogger("jarvis.voice")
+log = logging.getLogger("kairo.voice")
 IS_WINDOWS = sys.platform == "win32"
 
 
@@ -48,7 +48,7 @@ class Speaker:
         self._queue: "queue.Queue[tuple[str, threading.Event]]" = queue.Queue()
         self._neural_voice, self._rate, self._volume = neural_voice, rate, volume
         self._fallback_voice, self._fallback_rate = fallback_voice, fallback_rate
-        self._audio_file = Path(tempfile.gettempdir()) / "jarvis_speech.mp3"
+        self._audio_file = Path(tempfile.gettempdir()) / "kairo_speech.mp3"
         self._stop = threading.Event()
         self._busy = threading.Event()
         self.current_text = ""
@@ -96,23 +96,23 @@ class Speaker:
                 raise _Stopped
             return
         try:
-            _mci("close jarvis_audio")
+            _mci("close kairo_audio")
         except RuntimeError:
             pass
         try:
-            _mci(f'open "{self._audio_file}" type mpegvideo alias jarvis_audio')
+            _mci(f'open "{self._audio_file}" type mpegvideo alias kairo_audio')
         except RuntimeError:
             time.sleep(0.3)  # MCI occasionally fails to initialise once (error 277) - one retry
-            _mci(f'open "{self._audio_file}" type mpegvideo alias jarvis_audio')
+            _mci(f'open "{self._audio_file}" type mpegvideo alias kairo_audio')
         try:
-            _mci("play jarvis_audio")
-            while _mci("status jarvis_audio mode") == "playing":
+            _mci("play kairo_audio")
+            while _mci("status kairo_audio mode") == "playing":
                 if self._stop.wait(0.05):
-                    _mci("stop jarvis_audio")
+                    _mci("stop kairo_audio")
                     raise _Stopped
         finally:
             try:
-                _mci("close jarvis_audio")
+                _mci("close kairo_audio")
             except RuntimeError:
                 pass
 
@@ -180,7 +180,7 @@ class Speaker:
 
     # ------------------------------------------------------------------ public
     def say(self, text: str, wait: bool = True):
-        log.info("JARVIS: %s", text)
+        log.info("KAIRO: %s", text)
         done = threading.Event()
         self._queue.put((text, done))
         if wait:

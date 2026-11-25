@@ -5,7 +5,7 @@ __pycache__/
 
 # Personal data and logs - never commit
 data/
-jarvis.log*
+kairo.log*
 notes.txt
 reminders.json
 .env

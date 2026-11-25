@@ -1,4 +1,4 @@
-"""Make the tile logos the MSIX package needs from packaging/assets/jarvis-256.png.
+"""Make the tile logos the MSIX package needs from packaging/assets/kairo-256.png.
 
     python packaging/msix/make_logos.py <output folder>
 """
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image
 
-src = Path(__file__).resolve().parent.parent / "assets" / "jarvis-256.png"
+src = Path(__file__).resolve().parent.parent / "assets" / "kairo-256.png"
 out = Path(sys.argv[1])
 out.mkdir(parents=True, exist_ok=True)
 

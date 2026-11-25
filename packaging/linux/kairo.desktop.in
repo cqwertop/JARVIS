@@ -1,13 +1,13 @@
 [Desktop Entry]
 Type=Application
-Name=JARVIS
+Name=KAIRO
 Comment=Your personal voice assistant
 Exec=@EXEC@
-Icon=jarvis
+Icon=kairo
 Terminal=false
 Categories=Utility;
 Actions=Settings;
 
 [Desktop Action Settings]
-Name=JARVIS Settings
+Name=KAIRO Settings
 Exec=@EXEC@ --setup

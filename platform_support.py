@@ -1,4 +1,4 @@
-"""macOS and Linux versions of the things JARVIS does through Windows-only APIs.
+"""macOS and Linux versions of the things KAIRO does through Windows-only APIs.
 
 Windows keeps its original, tested code in tools.py / voice.py; those modules call into here on other systems.
 Everything uses programs that ship with the OS (osascript, afplay, say, open on macOS) or common desktop
@@ -18,7 +18,7 @@ import sys
 import threading
 from pathlib import Path
 
-log = logging.getLogger("jarvis.platform")
+log = logging.getLogger("kairo.platform")
 MAC = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")
 
@@ -274,7 +274,7 @@ def notify(title: str, message: str):
             safe_t, safe_m = title.replace('"', "'"), message.replace('"', "'")
             _run(["osascript", "-e", f'display notification "{safe_m}" with title "{safe_t}"'])
         elif shutil.which("notify-send"):
-            _run(["notify-send", "--app-name=JARVIS", title, message])
+            _run(["notify-send", "--app-name=KAIRO", title, message])
     except Exception as exc:
         log.warning("Notification failed: %r", exc)
 
@@ -283,8 +283,8 @@ def notify(title: str, message: str):
 
 def autostart_path() -> Path:
     if MAC:
-        return Path.home() / "Library" / "LaunchAgents" / "com.jarvis.assistant.plist"
-    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "autostart" / "jarvis.desktop"
+        return Path.home() / "Library" / "LaunchAgents" / "com.kairo.assistant.plist"
+    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "autostart" / "kairo.desktop"
 
 
 def set_autostart(enabled: bool, command: list[str]):
@@ -298,13 +298,13 @@ def set_autostart(enabled: bool, command: list[str]):
         path.write_text(
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
-            '<plist version="1.0"><dict><key>Label</key><string>com.jarvis.assistant</string>'
+            '<plist version="1.0"><dict><key>Label</key><string>com.kairo.assistant</string>'
             f"<key>ProgramArguments</key><array>{args}</array><key>RunAtLoad</key><true/></dict></plist>\n",
             encoding="utf-8",
         )
     else:
         path.write_text(
-            "[Desktop Entry]\nType=Application\nName=JARVIS\nComment=Voice assistant\n"
+            "[Desktop Entry]\nType=Application\nName=KAIRO\nComment=Voice assistant\n"
             f"Exec={shlex.join(command)}\nX-GNOME-Autostart-enabled=true\n",
             encoding="utf-8",
         )

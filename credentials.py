@@ -1,4 +1,4 @@
-"""API keys live in the operating system's secure credential store, never in a JARVIS file.
+"""API keys live in the operating system's secure credential store, never in a KAIRO file.
 
 Windows: Credential Manager. macOS: Keychain. Linux: Secret Service (GNOME Keyring / KWallet).
 """
@@ -6,9 +6,10 @@ Windows: Credential Manager. macOS: Keychain. Linux: Secret Service (GNOME Keyri
 import logging
 import os
 
-log = logging.getLogger("jarvis.credentials")
+log = logging.getLogger("kairo.credentials")
 
-SERVICE = "JARVIS"
+SERVICE = "KAIRO"
+OLD_SERVICE = "JARVIS"  # this app's previous name; keys saved under it are moved over on first use
 ANTHROPIC = "anthropic_api_key"
 
 
@@ -16,7 +17,16 @@ def get(account: str) -> str | None:
     try:
         import keyring
 
-        return keyring.get_password(SERVICE, account)
+        secret = keyring.get_password(SERVICE, account)
+        if secret is None:
+            secret = keyring.get_password(OLD_SERVICE, account)
+            if secret is not None:
+                keyring.set_password(SERVICE, account, secret)
+                try:
+                    keyring.delete_password(OLD_SERVICE, account)
+                except Exception:
+                    pass
+        return secret
     except Exception as exc:  # no keyring backend available (e.g. a minimal Linux)
         log.warning("Secure credential storage unavailable: %r", exc)
         return None

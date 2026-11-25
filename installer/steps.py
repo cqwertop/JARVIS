@@ -1,7 +1,7 @@
 """The real work behind each setup-wizard step.
 
 Every function either succeeds or raises StepError with a message written for a beginner: what happened
-and what to try. Runs inside the packaged JARVIS app, so everything JARVIS needs is already present -
+and what to try. Runs inside the packaged KAIRO app, so everything KAIRO needs is already present -
 nothing here installs Python packages. (Friendly-error approach from the original installer session.)
 """
 
@@ -22,7 +22,7 @@ import settings as settings_mod
 
 OLLAMA_URL = "http://localhost:11434"
 
-# Local models JARVIS works well with. Sizes are the download sizes listed on ollama.com (approximate);
+# Local models KAIRO works well with. Sizes are the download sizes listed on ollama.com (approximate);
 # the real total shows during the download. All of these support tool use (checked again after download).
 OLLAMA_CATALOG = [
     {"name": "qwen3:4b", "label": "Qwen 3 (4B)", "size_gb": 2.5,
@@ -33,10 +33,10 @@ OLLAMA_CATALOG = [
      "about": "Smallest and fastest. Best for older computers."},
 ]
 EMBEDDING_MODEL = {"name": "embeddinggemma", "size_gb": 0.6,
-                   "about": "Helps JARVIS search its memory by meaning (optional)."}
+                   "about": "Helps KAIRO search its memory by meaning (optional)."}
 
 VOICES = [
-    ("en-GB-RyanNeural", "Ryan - British, calm (the classic JARVIS)"),
+    ("en-GB-RyanNeural", "Ryan - British, calm (the classic KAIRO)"),
     ("en-GB-SoniaNeural", "Sonia - British"),
     ("en-US-GuyNeural", "Guy - American"),
     ("en-US-JennyNeural", "Jenny - American"),
@@ -107,7 +107,7 @@ def store_key(provider_id: str, key: str, log: Callable[[str], None] = print):
     except RuntimeError as exc:
         raise StepError(str(exc)) from exc
     store = {"win32": "Windows Credential Manager", "darwin": "your Mac's Keychain"}.get(sys.platform, "your keyring")
-    log(f"Your key is stored safely in {store} - not in any JARVIS file.")
+    log(f"Your key is stored safely in {store} - not in any KAIRO file.")
 
 
 # --------------------------------------------------------------------------- Ollama
@@ -236,7 +236,7 @@ def mic_level_meter(device_name: str, seconds: float, on_level: Callable[[float]
         pa.terminate()
         hint = {"darwin": " On a Mac, allow it in System Settings > Privacy & Security > Microphone.",
                 "win32": " On Windows, check Settings > Privacy & security > Microphone."}.get(sys.platform, "")
-        raise StepError("JARVIS couldn't open the microphone." + hint) from exc
+        raise StepError("KAIRO couldn't open the microphone." + hint) from exc
     peak = 0.0
     try:
         end = time.monotonic() + seconds
@@ -252,7 +252,7 @@ def mic_level_meter(device_name: str, seconds: float, on_level: Callable[[float]
     return peak
 
 
-def speak_sample(voice: str, text: str = "Hello! I'm JARVIS, your personal assistant. I'm ready to help."):
+def speak_sample(voice: str, text: str = "Hello! I'm KAIRO, your personal assistant. I'm ready to help."):
     from voice import Speaker
 
     s = settings_mod.load()["voice"]
@@ -262,19 +262,19 @@ def speak_sample(voice: str, text: str = "Hello! I'm JARVIS, your personal assis
 
 # --------------------------------------------------------------------------- start at login
 
-def jarvis_command() -> list[str]:
+def kairo_command() -> list[str]:
     if paths.FROZEN and sys.platform == "win32" and "\\WindowsApps\\" in sys.executable:
         # Installed from the MSIX bundle: Windows won't start the packaged exe by its path, so use the
-        # "jarvis" command the package adds (see packaging/msix/AppxManifest.xml).
+        # "kairo" command the package adds (see packaging/msix/AppxManifest.xml).
         return [str(Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-                    / "Microsoft" / "WindowsApps" / "jarvis.exe")]
+                    / "Microsoft" / "WindowsApps" / "kairo.exe")]
     if paths.FROZEN:
         return [sys.executable]
     return [sys.executable, str(paths.APP_DIR / "main.py"), "--log"]
 
 
 def set_start_at_login(enabled: bool, log: Callable[[str], None] = print):
-    cmd = jarvis_command()
+    cmd = kairo_command()
     try:
         if sys.platform == "win32":
             import subprocess as sp
@@ -284,10 +284,10 @@ def set_start_at_login(enabled: bool, log: Callable[[str], None] = print):
                                  winreg.KEY_SET_VALUE)
             with key:
                 if enabled:
-                    winreg.SetValueEx(key, "JARVIS", 0, winreg.REG_SZ, sp.list2cmdline(cmd))
+                    winreg.SetValueEx(key, "KAIRO", 0, winreg.REG_SZ, sp.list2cmdline(cmd))
                 else:
                     try:
-                        winreg.DeleteValue(key, "JARVIS")
+                        winreg.DeleteValue(key, "KAIRO")
                     except FileNotFoundError:
                         pass
         else:
@@ -296,7 +296,7 @@ def set_start_at_login(enabled: bool, log: Callable[[str], None] = print):
             platform_support.set_autostart(enabled, cmd)
     except OSError as exc:
         raise StepError(f"Couldn't change the start-at-login setting ({exc}).") from exc
-    log("JARVIS will start when you log in." if enabled else "JARVIS won't start by itself when you log in.")
+    log("KAIRO will start when you log in." if enabled else "KAIRO won't start by itself when you log in.")
 
 
 def start_at_login_enabled() -> bool:
@@ -305,7 +305,7 @@ def start_at_login_enabled() -> bool:
 
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run") as key:
-                winreg.QueryValueEx(key, "JARVIS")
+                winreg.QueryValueEx(key, "KAIRO")
                 return True
         except OSError:
             return False
@@ -314,8 +314,8 @@ def start_at_login_enabled() -> bool:
     return platform_support.autostart_path().exists()
 
 
-def launch_jarvis(extra: list[str] | None = None):
-    cmd = jarvis_command() + (extra or [])
+def launch_kairo(extra: list[str] | None = None):
+    cmd = kairo_command() + (extra or [])
     kwargs = {"creationflags": 0x00000008 | 0x00000200} if sys.platform == "win32" else {"start_new_session": True}
     if sys.platform == "win32" and not paths.FROZEN:
         pyw = Path(sys.executable).with_name("pythonw.exe")

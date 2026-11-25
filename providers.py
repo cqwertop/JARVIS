@@ -1,10 +1,10 @@
-"""Online AI providers JARVIS can use with an API key.
+"""Online AI providers KAIRO can use with an API key.
 
 Anthropic (Claude) has its own API. Most other companies offer an "OpenAI-compatible" API (the same request
 format OpenAI uses), so one client covers all of them: OpenAI, Google Gemini, OpenRouter, Groq, Mistral,
 DeepSeek, xAI, or any other compatible service you give the address of.
 
-Model names change often, so JARVIS doesn't hard-code them: after your key is checked, it asks the provider
+Model names change often, so KAIRO doesn't hard-code them: after your key is checked, it asks the provider
 which models your key can use and suggests one (see suggest_model).
 """
 
@@ -115,7 +115,7 @@ def list_models(base_url: str, key: str, label: str = "The service") -> list[str
         raise ProviderError(f"Couldn't reach {label}. Check your internet connection"
                             f"{' and the web address' if 'localhost' not in base_url else ''}.") from exc
     except ValueError as exc:
-        raise ProviderError(f"{label} sent an answer JARVIS didn't understand. Check the web address.") from exc
+        raise ProviderError(f"{label} sent an answer KAIRO didn't understand. Check the web address.") from exc
     ids = [m.get("id", "").removeprefix("models/") for m in data.get("data", data.get("models", []))]
     return sorted({i for i in ids if i and not _NOT_CHAT.search(i)})
 

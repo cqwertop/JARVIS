@@ -96,22 +96,22 @@ class ProvidersTest(unittest.TestCase):
         self.assertNotIn("Traceback", str(cm.exception))
 
     def test_brain_uses_tools_and_strips_thinking(self):
-        brain = brains.OpenAICompatBrain(self.url, "good", "gpt-5-mini", "You are JARVIS.", label="Fake")
+        brain = brains.OpenAICompatBrain(self.url, "good", "gpt-5-mini", "You are KAIRO.", label="Fake")
         reply = brain.ask("what time is it")
         self.assertTrue(reply.startswith("The tool said:"), reply)
         self.assertEqual([m["role"] for m in brain.history], ["user", "assistant", "tool", "assistant"])
         self.assertEqual(brain.history[2]["tool_call_id"], "call_1")
-        self.assertEqual(FakeAPI.requests[0]["messages"][0], {"role": "system", "content": "You are JARVIS."})
+        self.assertEqual(FakeAPI.requests[0]["messages"][0], {"role": "system", "content": "You are KAIRO."})
         self.assertEqual(brain.ask("hi"), "Hello, sir.")
 
     def test_model_without_tools_still_talks(self):
         FakeAPI.reject_tools = True
-        brain = brains.OpenAICompatBrain(self.url, "good", "tiny", "You are JARVIS.", label="Fake")
+        brain = brains.OpenAICompatBrain(self.url, "good", "tiny", "You are KAIRO.", label="Fake")
         self.assertEqual(brain.ask("hi"), "Hello, sir.")
         self.assertNotIn("tools", FakeAPI.requests[-1])
 
     def test_bad_key_while_talking_is_explained(self):
-        brain = brains.OpenAICompatBrain(self.url, "wrong", "gpt-5-mini", "You are JARVIS.", label="Fake")
+        brain = brains.OpenAICompatBrain(self.url, "wrong", "gpt-5-mini", "You are KAIRO.", label="Fake")
         with self.assertRaises(RuntimeError) as cm:
             brain.ask("hi")
         self.assertIn("Fake", str(cm.exception))

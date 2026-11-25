@@ -1,4 +1,4 @@
-"""The AI side of JARVIS: which model answers, the system prompt, and falling back when one fails.
+"""The AI side of KAIRO: which model answers, the system prompt, and falling back when one fails.
 
 Backends (all have the same interface: ask(text) -> reply text, close()):
     ApiBrain     - Claude via ANTHROPIC_API_KEY (pay-per-use API)
@@ -17,7 +17,7 @@ import urllib.request
 
 import tools
 
-log = logging.getLogger("jarvis.brain")
+log = logging.getLogger("kairo.brain")
 
 WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 3}
 
@@ -27,7 +27,7 @@ def build_system_prompt(settings: dict, memory_summary: str = "") -> str:
     name = settings["assistant_name"]
     title = p.get("address_user_as", "").strip()
     style = (
-        "witty, loyal and highly capable, in the spirit of Tony Stark's butler AI - professional, calm and intelligent"
+        "witty, loyal and highly capable, in the spirit of a classic AI butler - professional, calm and intelligent"
         if p.get("style") != "casual"
         else "friendly, relaxed and capable - talk like a smart friend, casual but never sloppy"
     )
@@ -254,7 +254,7 @@ def _strip_think(text: str) -> str:
 class OpenAICompatBrain:
     """OpenAI, Google Gemini, OpenRouter, Groq, Mistral, DeepSeek, xAI... any OpenAI-compatible chat API.
 
-    Uses the standard /chat/completions request with function tools, so the same JARVIS tools work.
+    Uses the standard /chat/completions request with function tools, so the same KAIRO tools work.
     """
 
     def __init__(self, base_url: str, api_key: str, model: str, system_prompt: str, label: str = "Online AI",

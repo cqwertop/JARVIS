@@ -76,14 +76,14 @@ def feed(a, sp, lines):
 class VoiceLoopTests(unittest.TestCase):
     def test_conversation_without_repeating_name(self):
         a, sp, brain = make(listen_chime=False)
-        feed(a, sp, ["Jarvis open VS Code", "actually open my robotics project"])
+        feed(a, sp, ["Kairo open VS Code", "actually open my robotics project"])
         self.assertEqual(brain.asked[0], "open VS Code")
         self.assertIn("actually open my robotics project", brain.asked[1])  # follow-up reached the AI
         self.assertEqual(sp.said, ["reply 1", "reply 2"])
 
     def test_background_follow_up_stays_silent(self):
         a, sp, brain = make(silent_for=("pass the salt",), listen_chime=False)
-        feed(a, sp, ["Jarvis what's the time", "mom can you pass the salt"])
+        feed(a, sp, ["Kairo what's the time", "mom can you pass the salt"])
         self.assertEqual(sp.said, ["reply 1"])
 
     def test_standby_ignores_unaddressed_speech(self):
@@ -93,30 +93,30 @@ class VoiceLoopTests(unittest.TestCase):
 
     def test_name_then_pause_then_command(self):
         a, sp, brain = make(listen_chime=False)
-        feed(a, sp, ["hey Jarvis", "open Discord"])
+        feed(a, sp, ["hey Kairo", "open Discord"])
         self.assertEqual(brain.asked, ["open Discord"])
 
     def test_barge_in_with_new_command(self):
         a, sp, brain = make(speak_for=5, listen_chime=False)
-        feed(a, sp, ["Jarvis tell me a long story", "Jarvis open Spotify"])
+        feed(a, sp, ["Kairo tell me a long story", "Kairo open Spotify"])
         self.assertEqual(sp.stopped, 1)
         self.assertEqual(brain.asked, ["tell me a long story", "open spotify"])
 
     def test_echo_does_not_interrupt(self):
         a, sp, brain = make(speak_for=3, listen_chime=False)
-        feed(a, sp, ["Jarvis say something", "reply 1"])  # the mic hearing JARVIS's own words
+        feed(a, sp, ["Kairo say something", "reply 1"])  # the mic hearing KAIRO's own words
         self.assertEqual(sp.stopped, 0)
         self.assertEqual(len(brain.asked), 1)
 
     def test_stop_while_speaking_keeps_conversation(self):
         a, sp, brain = make(speak_for=5, listen_chime=False)
-        feed(a, sp, ["Jarvis tell me a story", "stop", "what about tomorrow"])
+        feed(a, sp, ["Kairo tell me a story", "stop", "what about tomorrow"])
         self.assertEqual(sp.stopped, 1)
         self.assertIn("what about tomorrow", brain.asked[-1])
 
     def test_goodbye(self):
         a, sp, brain = make(listen_chime=False)
-        feed(a, sp, ["goodbye Jarvis", "Jarvis open chrome"])
+        feed(a, sp, ["goodbye Kairo", "Kairo open chrome"])
         self.assertFalse(a.running)
         self.assertEqual(brain.asked, [])
 

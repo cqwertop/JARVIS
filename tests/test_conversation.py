@@ -2,7 +2,7 @@ import unittest
 
 import conversation as c
 
-WAKE = ["jarvis", "jervis", "javis", "jarves", "jarvi", "jarvus"]
+WAKE = ["kairo", "cairo", "kyro", "kiro", "kairos", "chiro"]
 
 
 def classify(text, awaiting=False, follow=False, mode="conversation"):
@@ -11,22 +11,22 @@ def classify(text, awaiting=False, follow=False, mode="conversation"):
 
 class ClassifyTests(unittest.TestCase):
     def test_name_first_is_direct(self):
-        self.assertEqual(classify("Jarvis open Discord"), c.Verdict(c.DIRECT, "open Discord"))
-        self.assertEqual(classify("hey Jarvis, play I wonder by Kanye West"), c.Verdict(c.DIRECT, "play I wonder by Kanye West"))
-        self.assertEqual(classify("okay Jervis what's the weather"), c.Verdict(c.DIRECT, "what's the weather"))
+        self.assertEqual(classify("Kairo open Discord"), c.Verdict(c.DIRECT, "open Discord"))
+        self.assertEqual(classify("hey Kairo, play I wonder by Kanye West"), c.Verdict(c.DIRECT, "play I wonder by Kanye West"))
+        self.assertEqual(classify("okay Cairo what's the weather"), c.Verdict(c.DIRECT, "what's the weather"))
 
     def test_name_alone_waits_for_command(self):
-        self.assertEqual(classify("hey Jarvis").kind, c.WAKE_ONLY)
-        self.assertEqual(classify("Jarvis").kind, c.WAKE_ONLY)
+        self.assertEqual(classify("hey Kairo").kind, c.WAKE_ONLY)
+        self.assertEqual(classify("Kairo").kind, c.WAKE_ONLY)
 
     def test_command_after_name_alone_is_direct(self):
-        # The old version lost these: "hey Jarvis" ... pause ... "open Discord"
+        # The old version lost these: "hey Kairo" ... pause ... "open Discord"
         self.assertEqual(classify("open Discord", awaiting=True), c.Verdict(c.DIRECT, "open Discord"))
 
     def test_background_mentions_are_not_direct(self):
-        # Real false triggers from jarvis.log
-        for text in ["Amazon Jarvis", "Ray Jarvis", "11 Jarvis", "are you just making Jarvis do it bro",
-                     "yeah I built Jarvis", "what do you like it to be called Jarvis"]:
+        # Real false triggers from kairo.log
+        for text in ["Amazon Kairo", "Ray Kairo", "11 Kairo", "are you just making Kairo do it bro",
+                     "yeah I built Kairo", "what do you like it to be called Kairo"]:
             self.assertEqual(classify(text).kind, c.MAYBE, text)
 
     def test_unaddressed_speech_ignored_in_standby(self):
@@ -47,16 +47,16 @@ class ClassifyTests(unittest.TestCase):
 
     def test_stop_and_goodbye(self):
         self.assertEqual(classify("stop", follow=True).kind, c.STOP)
-        self.assertEqual(classify("Jarvis stop").kind, c.STOP)
+        self.assertEqual(classify("Kairo stop").kind, c.STOP)
         self.assertEqual(classify("okay that's all thanks", follow=True).kind, c.STOP)
-        self.assertEqual(classify("goodbye Jarvis").kind, c.GOODBYE)
+        self.assertEqual(classify("goodbye Kairo").kind, c.GOODBYE)
         # Not a goodbye: long sentence that happens to contain "exit"
-        self.assertNotEqual(classify("Jarvis how do I exit vim without losing my changes").kind, c.GOODBYE)
+        self.assertNotEqual(classify("Kairo how do I exit vim without losing my changes").kind, c.GOODBYE)
         # "stop" in standby without the name is just background
         self.assertEqual(classify("stop").kind, c.IGNORE)
 
     def test_stop_inside_request_is_not_stop(self):
-        self.assertEqual(classify("Jarvis how do I stop my code from crashing").kind, c.DIRECT)
+        self.assertEqual(classify("Kairo how do I stop my code from crashing").kind, c.DIRECT)
 
 
 class EchoAndInterruptTests(unittest.TestCase):
@@ -68,13 +68,13 @@ class EchoAndInterruptTests(unittest.TestCase):
         self.assertFalse(c.looks_like_echo("open spotify", self.SPOKEN))
 
     def test_interruptions(self):
-        self.assertEqual(c.detect_interruption("Jarvis stop", self.SPOKEN, WAKE).kind, c.STOP)
+        self.assertEqual(c.detect_interruption("Kairo stop", self.SPOKEN, WAKE).kind, c.STOP)
         self.assertEqual(c.detect_interruption("London is twelve stop degrees", self.SPOKEN, WAKE).kind, c.STOP)
-        v = c.detect_interruption("Jarvis open Spotify", self.SPOKEN, WAKE)
+        v = c.detect_interruption("Kairo open Spotify", self.SPOKEN, WAKE)
         self.assertEqual(v, c.Verdict(c.DIRECT, "open spotify"))
         self.assertIsNone(c.detect_interruption("weather in London is twelve degrees", self.SPOKEN, WAKE))
-        # JARVIS saying its own name must not count as an interruption
-        self.assertIsNone(c.detect_interruption("I'm Jarvis your assistant", "I'm Jarvis, your assistant", WAKE))
+        # KAIRO saying its own name must not count as an interruption
+        self.assertIsNone(c.detect_interruption("I'm Kairo your assistant", "I'm Kairo, your assistant", WAKE))
 
 
 class SilentTests(unittest.TestCase):

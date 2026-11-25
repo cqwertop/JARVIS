@@ -1,6 +1,6 @@
 """Tasks, homework, tests and project deadlines.
 
-Stored in data/tasks.json. JARVIS never submits schoolwork - this only keeps track of it.
+Stored in data/tasks.json. KAIRO never submits schoolwork - this only keeps track of it.
 """
 
 import datetime as dt
@@ -9,7 +9,7 @@ import logging
 import threading
 from pathlib import Path
 
-log = logging.getLogger("jarvis.tasks")
+log = logging.getLogger("kairo.tasks")
 
 KINDS = ("task", "assignment", "test", "project", "study")
 

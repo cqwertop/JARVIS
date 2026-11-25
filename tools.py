@@ -1,4 +1,4 @@
-"""Everything JARVIS can actually *do* on this PC.
+"""Everything KAIRO can actually *do* on this PC.
 
 Each function decorated with @beta_tool becomes a tool Claude can call.
 The docstring is what Claude reads to decide when to use it, so keep them clear.
@@ -196,7 +196,7 @@ def close_application(name: str) -> str:
         pname = (proc.info["name"] or "").lower()
         if key and key in re.sub(r"[^a-z0-9]", "", pname.removesuffix(".exe")):
             if pname in ("explorer.exe", "python.exe", "pythonw.exe"):
-                continue  # never close the desktop or JARVIS itself
+                continue  # never close the desktop or KAIRO itself
             try:
                 proc.terminate()
                 killed.add(proc.info["name"])
@@ -436,7 +436,7 @@ def take_screenshot() -> str:
     """Take a screenshot of the screen and save it to the Pictures folder."""
     from PIL import ImageGrab
 
-    folder = Path.home() / "Pictures" / "JARVIS Screenshots"
+    folder = Path.home() / "Pictures" / "KAIRO Screenshots"
     if sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
         return "Screenshots aren't supported on this Linux desktop yet (needs an X11 session)."
     folder.mkdir(parents=True, exist_ok=True)

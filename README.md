@@ -1,11 +1,11 @@
 
 <div align="center">
 
-<img src="https://images.openai.com/static-rsc-4/pqi3gwzh9VkQbUcjdwhiosMbTytsglIqQtxX5LuKGDEqRZyUR-KSshOcipev1-IqhQnwksn-9DZX93C7WlRIKJ5iqKP8Suy3kTXqkRgYOF7c-BsBOIfSyciDfXZyekawTBqfQYFus_7AIyZ2_iV7WxYhqyJjn4-cH0tsNEH4SPHJTP8Nh_kuH1rp3OiIxu1-?purpose=fullsize" width="100%" alt="JARVIS Banner">
+<img src="https://images.openai.com/static-rsc-4/pqi3gwzh9VkQbUcjdwhiosMbTytsglIqQtxX5LuKGDEqRZyUR-KSshOcipev1-IqhQnwksn-9DZX93C7WlRIKJ5iqKP8Suy3kTXqkRgYOF7c-BsBOIfSyciDfXZyekawTBqfQYFus_7AIyZ2_iV7WxYhqyJjn4-cH0tsNEH4SPHJTP8Nh_kuH1rp3OiIxu1-?purpose=fullsize" width="100%" alt="KAIRO Banner">
 
-# J.A.R.V.I.S.
+# KAIRO
 
-### Just A Rather Very Intelligent System
+### Your Personal Voice Assistant
 
 **Your personal AI. Your tools. Your world.**
 
@@ -23,9 +23,9 @@
 
 ---
 
-## ◈ What is JARVIS?
+## ◈ What is KAIRO?
 
-JARVIS is a personal AI assistant designed to bring intelligent conversation, voice interaction, desktop automation, and productivity tools together in one unified system.
+KAIRO is a personal AI assistant designed to bring intelligent conversation, voice interaction, desktop automation, and productivity tools together in one unified system.
 
 ## ◈ Features
 
@@ -42,7 +42,7 @@ JARVIS is a personal AI assistant designed to bring intelligent conversation, vo
 ## ◈ Architecture
 
 ```text
-             JARVIS CORE
+             KAIRO CORE
                   |
        +----------+----------+
        |          |          |
@@ -86,7 +86,7 @@ Contributions, suggestions, and bug reports are welcome.
 
 <div align="center">
 
-### JARVIS
+### KAIRO
 
 **THE FUTURE, AT YOUR COMMAND.**
 

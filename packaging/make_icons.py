@@ -1,4 +1,4 @@
-"""Draws the JARVIS icon and saves it in every format the installers need (.ico, .icns, .png).
+"""Draws the KAIRO icon and saves it in every format the installers need (.ico, .icns, .png).
 
     python packaging/make_icons.py
 """
@@ -29,10 +29,10 @@ def draw(size: int = 1024) -> Image.Image:
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     img = draw()
-    img.save(OUT / "jarvis.png")
-    img.resize((256, 256), Image.LANCZOS).save(OUT / "jarvis-256.png")
-    img.save(OUT / "jarvis.ico", sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-    img.save(OUT / "jarvis.icns")
+    img.save(OUT / "kairo.png")
+    img.resize((256, 256), Image.LANCZOS).save(OUT / "kairo-256.png")
+    img.save(OUT / "kairo.ico", sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+    img.save(OUT / "kairo.icns")
     # Inno Setup wizard images (left panel 164x314, small 55x58 at 100% scale; 2x versions for high-DPI screens).
     for name, (w, h) in {"wizard-large": (328, 628), "wizard-small": (110, 116)}.items():
         panel = Image.new("RGBA", (w, h), BG)

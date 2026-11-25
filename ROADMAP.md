@@ -1,4 +1,4 @@
-# JARVIS Roadmap & Backlog
+# KAIRO Roadmap & Backlog
 
 **Read this first at the start of every development session.** Update "Status" and "Next up" before you finish.
 
@@ -19,15 +19,15 @@
 
 ## Audit findings (session 1)
 
-What existed: about 700 lines of Python. There was a voice loop that required "Jarvis" in every command, Google
+What existed: about 700 lines of Python. There was a voice loop that required "Kairo" in every command, Google
 speech recognition, an edge-tts voice with a SAPI fallback, Claude through the API or the Claude plan (Agent SDK),
 18 Windows tools, Startup-folder autostart, and no tests, git, config or docs.
 
-Problems found in `jarvis.log`:
-- 46 of the listening failures were caused by no internet. Cloud speech recognition makes JARVIS deaf offline.
+Problems found in `kairo.log`:
+- 46 of the listening failures were caused by no internet. Cloud speech recognition makes KAIRO deaf offline.
   → Local STT is the top voice priority.
 - Background mentions of the name ran as commands. → Fixed (conversation.classify plus `<silent>`).
-- "Hey Jarvis" + pause lost the command. → Fixed.
+- "Hey Kairo" + pause lost the command. → Fixed.
 - Recognizer JSONDecodeError was mishandled as a mic failure. → Fixed.
 
 Hardware: i5-8400 (6 cores), 16 GB RAM, **no NVIDIA GPU**. Ollama 0.40 installed, with qwen3:8b, gemma3:4b,
@@ -36,7 +36,7 @@ plan takes about 1–11 s.
 
 ## Next up (priority order)
 
-1. **Local speech recognition** (faster-whisper `base.en` or `small.en` + Silero VAD). This makes JARVIS work
+1. **Local speech recognition** (faster-whisper `base.en` or `small.en` + Silero VAD). This makes KAIRO work
    offline and stops audio going to Google. ⚠ Needs approval to install about 200 MB of packages and models. Keep
    Google as a fallback.
 2. **Automated fix loop** (maintenance phase 2). health_check finds a failure → new git branch → headless

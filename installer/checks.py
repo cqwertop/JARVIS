@@ -1,4 +1,4 @@
-"""System checks for the JARVIS setup wizard (Windows, macOS, Linux).
+"""System checks for the KAIRO setup wizard (Windows, macOS, Linux).
 
 Each check returns plain values; the wizard turns them into friendly sentences.
 Originally written by the installer session; reworked to run inside the packaged app.
@@ -126,7 +126,7 @@ def input_microphones() -> list[str]:
 
 
 def check_system(data_dir: Path, *, with_gpu: bool = True, with_network: bool = True) -> SystemReport:
-    import steps  # local import: steps imports JARVIS modules
+    import steps  # local import: steps imports KAIRO modules
 
     r = SystemReport()
     r.os_name, r.os_version = friendly_os()
@@ -148,16 +148,16 @@ def check_system(data_dir: Path, *, with_gpu: bool = True, with_network: bool = 
 
     supported = {"Windows 10", "Windows 11", "macOS"}
     if r.os_name not in supported and sys.platform != "linux":
-        r.problems.append(f"{r.os_name} hasn't been tested with JARVIS. It may still work.")
+        r.problems.append(f"{r.os_name} hasn't been tested with KAIRO. It may still work.")
     if r.ram_gb < MIN_RAM_GB:
-        r.problems.append(f"This computer has {r.ram_gb} GB of memory. JARVIS needs at least {MIN_RAM_GB} GB.")
+        r.problems.append(f"This computer has {r.ram_gb} GB of memory. KAIRO needs at least {MIN_RAM_GB} GB.")
     if r.disk_free_gb < MIN_FREE_DISK_GB:
         r.problems.append(f"Only {r.disk_free_gb} GB of free space is left. Please free up at least {MIN_FREE_DISK_GB} GB.")
     if with_network and not r.internet:
-        r.problems.append("JARVIS can't reach the internet. Connect to Wi-Fi or a cable, then press Check again. "
+        r.problems.append("KAIRO can't reach the internet. Connect to Wi-Fi or a cable, then press Check again. "
                           "(You can still use a local AI model without internet once it's downloaded.)")
     if not r.microphones:
-        r.problems.append("No microphone was found. You can still type to JARVIS, or plug one in and press Check again.")
+        r.problems.append("No microphone was found. You can still type to KAIRO, or plug one in and press Check again.")
 
     r.good_news.append(f"{r.os_name} {r.os_version} ({r.cpu_arch}, {r.cpu_cores} processor cores).")
     if r.ram_gb >= MIN_RAM_GB:
@@ -169,14 +169,14 @@ def check_system(data_dir: Path, *, with_gpu: bool = True, with_network: bool = 
     if r.microphones:
         r.good_news.append(f"Microphone found: {r.microphones[0]}" + (f" (and {len(r.microphones) - 1} more)" if len(r.microphones) > 1 else ""))
     if r.already_set_up:
-        r.good_news.append("JARVIS is already set up on this computer. You can change your choices here.")
+        r.good_news.append("KAIRO is already set up on this computer. You can change your choices here.")
     return r
 
 
 def describe_results(report: SystemReport) -> str:
     if not report.problems:
         return "Your computer is ready!"
-    return "Your computer needs one more thing before JARVIS can start." if len(report.problems) == 1 else \
+    return "Your computer needs one more thing before KAIRO can start." if len(report.problems) == 1 else \
         "A few things need attention, but you can usually continue."
 
 

@@ -1,4 +1,4 @@
-"""Long-term memory: things you ask JARVIS to remember about you, your preferences and your projects.
+"""Long-term memory: things you ask KAIRO to remember about you, your preferences and your projects.
 
 Stored in data/memory.json (plain JSON on this PC - you can open, back up or delete it any time).
 Search is semantic when the local Ollama embedding model is available (finds "robot arm" when you ask
@@ -18,7 +18,7 @@ import threading
 import urllib.request
 from pathlib import Path
 
-log = logging.getLogger("jarvis.memory")
+log = logging.getLogger("kairo.memory")
 
 CATEGORIES = ("preference", "project", "person", "school", "device", "fact")
 

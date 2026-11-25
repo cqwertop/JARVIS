@@ -1,6 +1,6 @@
-"""JARVIS settings.
+"""KAIRO settings.
 
-Defaults live here. Your own changes go in data/settings.json, which is created the first time JARVIS runs
+Defaults live here. Your own changes go in data/settings.json, which is created the first time KAIRO runs
 and only needs to contain the values you want to change (everything else falls back to these defaults).
 data/ is never committed to git, so personal settings stay on this PC.
 """
@@ -14,26 +14,26 @@ from paths import DATA_DIR
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 
-log = logging.getLogger("jarvis.settings")
+log = logging.getLogger("kairo.settings")
 
 DEFAULTS: dict = {
-    "assistant_name": "JARVIS",
+    "assistant_name": "KAIRO",
     # Spellings speech recognition produces for the name. The first one is the "real" one.
-    "wake_words": ["jarvis", "jervis", "javis", "jarves", "jarvi", "jarvus"],
-    # How JARVIS decides you're talking to it:
-    #   conversation  - say "Jarvis" once, then keep talking without it until you go quiet (default)
-    #   wake_word     - every command must include "Jarvis"
-    #   always        - everything heard goes to JARVIS, which ignores speech not meant for it (uses more AI usage)
+    "wake_words": ["kairo", "cairo", "kyro", "kiro", "kairos", "chiro"],  # plus common mis-hearings of "Kairo"
+    # How KAIRO decides you're talking to it:
+    #   conversation  - say "Kairo" once, then keep talking without it until you go quiet (default)
+    #   wake_word     - every command must include "Kairo"
+    #   always        - everything heard goes to KAIRO, which ignores speech not meant for it (uses more AI usage)
     #   push_to_talk  - the microphone only opens when you press the talk hotkey / HUD button
-    #   text          - microphone never used; type to JARVIS in the on-screen panel
+    #   text          - microphone never used; type to KAIRO in the on-screen panel
     "listen_mode": "conversation",
     # Microphone to use (name as the system lists it). Empty = the system default.
     "microphone_name": "",
-    # In conversation mode: how long after JARVIS answers you can follow up without saying its name.
+    # In conversation mode: how long after KAIRO answers you can follow up without saying its name.
     "follow_up_seconds": 20,
-    # Let "stop" / "Jarvis, ..." cut JARVIS off while it's talking.
+    # Let "stop" / "Kairo, ..." cut KAIRO off while it's talking.
     "barge_in": True,
-    # Short beep when JARVIS starts listening for a command.
+    # Short beep when KAIRO starts listening for a command.
     "listen_chime": True,
     # Which AI to use: auto (Claude API if ANTHROPIC_API_KEY is set, else your Claude plan), api (Claude API key),
     # pro (Claude plan via Claude Code), online (another company's API, see "online"), ollama (local model)
@@ -65,11 +65,11 @@ DEFAULTS: dict = {
     "hotkeys": {
         "enabled": True,
         "mute": "ctrl+alt+m",  # turn the microphone off / on
-        "stop": "ctrl+alt+s",  # stop JARVIS talking
+        "stop": "ctrl+alt+s",  # stop KAIRO talking
         "talk": "ctrl+alt+j",  # start listening without saying the name
         "panel": "ctrl+alt+h",  # hide / show the on-screen panel
     },
-    "log_transcripts": True,  # write what you said / JARVIS said to jarvis.log
+    "log_transcripts": True,  # write what you said / KAIRO said to kairo.log
     "start_at_login": False,  # set by the setup wizard
     "setup_complete": False,  # the installed app shows the setup wizard until this is true
 }

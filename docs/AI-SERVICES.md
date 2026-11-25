@@ -1,6 +1,6 @@
-# Choosing JARVIS's AI
+# Choosing KAIRO's AI
 
-JARVIS can think with an **online AI service** (you bring an API key from that company) or a **local model**
+KAIRO can think with an **online AI service** (you bring an API key from that company) or a **local model**
 that runs on your own computer with Ollama.
 
 ## Important things to know about API keys
@@ -10,8 +10,8 @@ that runs on your own computer with Ollama.
 - **Most services charge for use.** A typical spoken question costs a fraction of a cent, but costs add up. Set a
   monthly spending limit on the company's site. Some services (Google Gemini, Groq, Mistral, some OpenRouter models)
   have free tiers with daily limits.
-- **Keep your key private.** Paste it only into JARVIS's setup guide, never into a chat, email or website you don't
-  trust. JARVIS stores it in your computer's secure password storage (Windows Credential Manager, macOS Keychain,
+- **Keep your key private.** Paste it only into KAIRO's setup guide, never into a chat, email or website you don't
+  trust. KAIRO stores it in your computer's secure password storage (Windows Credential Manager, macOS Keychain,
   or GNOME Keyring/KWallet), never in a file, and only sends it to the company it belongs to.
 - **Checking a key is free.** The setup guide's **Check key** only asks for the list of models.
 
@@ -33,15 +33,15 @@ that runs on your own computer with Ollama.
 
 1. In the setup guide, pick the company and press **Open <site>**. Your browser opens the company's official page.
 2. Sign in or create an account. If the service is paid, add a payment method or credit and set a spending limit.
-3. Create a new key. Call it "JARVIS" and copy it. **Most sites show a key only once.**
-4. Go back to JARVIS, paste the key, and press **Check key**.
+3. Create a new key. Call it "KAIRO" and copy it. **Most sites show a key only once.**
+4. Go back to KAIRO, paste the key, and press **Check key**.
 5. Choose a model. The guide suggests a good, low-cost one. To control your computer (open apps, set reminders and
-   so on), the model must support **tools**, and most current chat models do. If one doesn't, JARVIS can still talk
+   so on), the model must support **tools**, and most current chat models do. If one doesn't, KAIRO can still talk
    but can't act.
 
 ### Changing service or key later
 
-Open **JARVIS Settings** (Start menu on Windows, or right-click JARVIS's panel → Settings...). Choose a different
+Open **KAIRO Settings** (Start menu on Windows, or right-click KAIRO's panel → Settings...). Choose a different
 service, or paste a new key for the same one. The old key is replaced in your password storage.
 
 ## Local models (Ollama)
@@ -60,7 +60,7 @@ service, or paste a new key for the same one. The old key is replaced in your pa
 
 ## Using your own Claude Pro/Max plan (personal use only)
 
-When you run JARVIS **from source**, you can choose "Use my Claude plan through Claude Code". JARVIS then uses
+When you run KAIRO **from source**, you can choose "Use my Claude plan through Claude Code". KAIRO then uses
 the Claude Code you installed and signed in to yourself, and it counts toward your plan's usage limits.
 Anthropic doesn't allow apps given to other people to run on someone's plan sign-in, so the **packaged
 installers only offer API keys and local models**.

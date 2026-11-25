@@ -1,8 +1,8 @@
-"""A small always-on-top status panel (the visible "is JARVIS listening?" indicator) plus global hotkeys.
+"""A small always-on-top status panel (the visible "is KAIRO listening?" indicator) plus global hotkeys.
 
-The panel shows what JARVIS is doing and what it last said, and has buttons to mute the microphone, stop
-JARVIS talking, talk without saying its name, and type instead of talking. Drag it anywhere. Right-click it
-(Control-click on a Mac) for Settings, your data folder, hiding the panel, and quitting JARVIS.
+The panel shows what KAIRO is doing and what it last said, and has buttons to mute the microphone, stop
+KAIRO talking, talk without saying its name, and type instead of talking. Drag it anywhere. Right-click it
+(Control-click on a Mac) for Settings, your data folder, hiding the panel, and quitting KAIRO.
 Runs on its own thread; other threads call set_state() / set_reply(), which are thread-safe.
 """
 
@@ -12,12 +12,12 @@ import queue
 import sys
 import threading
 
-log = logging.getLogger("jarvis.hud")
+log = logging.getLogger("kairo.hud")
 
 # state -> (label, colour)
 STATES = {
     "starting": ("STARTING", "#7f8c9a"),
-    "standby": ("STANDBY", "#2a9fd6"),  # mic on, waiting for "Jarvis"
+    "standby": ("STANDBY", "#2a9fd6"),  # mic on, waiting for "Kairo"
     "listening": ("LISTENING", "#29e0ff"),  # in a conversation - no name needed
     "thinking": ("THINKING", "#ffb347"),
     "speaking": ("SPEAKING", "#5ad1ff"),
@@ -35,7 +35,7 @@ class Hud:
     def __init__(self, on_mute, on_stop, on_talk, hotkeys: dict | None = None, on_text=None,
                  menu: dict | None = None, show_typing: bool = False, show_request=None):
         """menu: label -> callback for the right-click menu.
-        show_request: a file that, when it appears, means "show the panel" (JARVIS was opened again)."""
+        show_request: a file that, when it appears, means "show the panel" (KAIRO was opened again)."""
         self._show_request = show_request
         if show_request is not None:
             try:
@@ -64,7 +64,7 @@ class Hud:
         self._q.put(("muted", muted, None))
 
     def set_reply(self, text: str):
-        """Show what JARVIS said (useful in noisy places or text mode)."""
+        """Show what KAIRO said (useful in noisy places or text mode)."""
         self._q.put(("reply", text, None))
 
     def toggle_visible(self):
@@ -89,7 +89,7 @@ class Hud:
             self._started.set()
             return
         self.ok = True
-        root.title("JARVIS")
+        root.title("KAIRO")
         root.overrideredirect(True)
         root.attributes("-topmost", True)
         try:
@@ -102,7 +102,7 @@ class Hud:
         self._canvas.grid(row=0, column=0, rowspan=3, padx=(8, 6), pady=8, sticky="n")
         top = tk.Frame(root, bg=BG)
         top.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=(6, 0))
-        self._title = tk.Label(top, text="JARVIS", fg=FG, bg=BG, font=(UI_FONT, 11, "bold"))
+        self._title = tk.Label(top, text="KAIRO", fg=FG, bg=BG, font=(UI_FONT, 11, "bold"))
         self._title.pack(side="left")
         self._status = tk.Label(top, text="STARTING", fg=DIM, bg=BG, font=(MONO_FONT, 9, "bold"))
         self._status.pack(side="left", padx=(8, 0))
@@ -128,12 +128,12 @@ class Hud:
             return f"{text} ({keys[name]})" if keys.get(name) else text
 
         self._mute_btn = button("MUTE", lambda: self._fire("mute"), tip("Turn the microphone off/on", "mute"), width=8)
-        button("STOP", lambda: self._fire("stop"), tip("Stop JARVIS talking", "stop"))
+        button("STOP", lambda: self._fire("stop"), tip("Stop KAIRO talking", "stop"))
         button("TALK", lambda: self._fire("talk"), tip("Talk without saying the name", "talk"))
         if self._on_text:
             button("TYPE", self._toggle_typing, "Type a message instead of talking")
 
-        # What JARVIS last said, and the typing box (both hidden until needed).
+        # What KAIRO last said, and the typing box (both hidden until needed).
         self._reply = tk.Label(root, text="", fg=FG, bg=BG, font=(UI_FONT, 9), anchor="w", justify="left",
                                wraplength=330)
         self._entry_row = tk.Frame(root, bg=BG)
@@ -174,7 +174,7 @@ class Hud:
     def _hide(self):
         self._root.withdraw()
         log.info("Panel hidden.%s", f" Press {self._hotkeys['panel']} to show it again."
-                 if self._hotkeys.get("panel") else " Restart JARVIS to show it again.")
+                 if self._hotkeys.get("panel") else " Restart KAIRO to show it again.")
 
     def _show(self):
         root = self._root
@@ -246,7 +246,7 @@ class Hud:
                 self._show_request.unlink()
             except OSError:
                 pass
-            log.info("JARVIS was opened again - showing the panel.")
+            log.info("KAIRO was opened again - showing the panel.")
             self._show()
         self._draw()
         # Animate only while something is happening; otherwise redraw rarely to save CPU.

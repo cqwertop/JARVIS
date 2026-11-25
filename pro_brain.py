@@ -1,4 +1,4 @@
-"""Runs JARVIS on your Claude Pro/Max plan, through Claude Code, instead of a paid API key.
+"""Runs KAIRO on your Claude Pro/Max plan, through Claude Code, instead of a paid API key.
 
 Uses the Claude Agent SDK, which drives the Claude Code program installed on this PC and its sign-in.
 Requests count toward your plan's usage limits (shared with claude.ai and Claude Code).
@@ -21,8 +21,8 @@ from claude_agent_sdk import (
 
 import tools
 
-SERVER_NAME = "jarvis"
-log = logging.getLogger("jarvis.brain")
+SERVER_NAME = "kairo"
+log = logging.getLogger("kairo.brain")
 
 
 def _wrap(beta_tool):
@@ -50,7 +50,7 @@ class ProBrain:
             model=model,
             system_prompt=system_prompt,
             mcp_servers={SERVER_NAME: server},
-            tools=["WebSearch", "WebFetch"],  # no file editing or shell commands - only JARVIS's own tools
+            tools=["WebSearch", "WebFetch"],  # no file editing or shell commands - only KAIRO's own tools
             allowed_tools=allowed,
             permission_mode="dontAsk",  # anything not in allowed_tools is refused, never prompted
             setting_sources=[],  # don't load your personal Claude Code settings/CLAUDE.md
@@ -93,7 +93,7 @@ class ProBrain:
         except Exception as exc:
             if "limit" in str(exc).lower():
                 raise  # usage limit - reconnecting won't help
-            # JARVIS runs for days; if the Claude Code process died, start a fresh one and try once more.
+            # KAIRO runs for days; if the Claude Code process died, start a fresh one and try once more.
             log.warning("Claude Code session lost (%r); reconnecting", exc)
             self.close()
             self._run(self._connect())

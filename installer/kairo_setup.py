@@ -1,12 +1,12 @@
-"""JARVIS Setup - the step-by-step wizard that runs the first time JARVIS starts (and from Settings later).
+"""KAIRO Setup - the step-by-step wizard that runs the first time KAIRO starts (and from Settings later).
 
-It checks the computer, lets you choose how JARVIS thinks (Claude online, or a free local model with Ollama),
+It checks the computer, lets you choose how KAIRO thinks (Claude online, or a free local model with Ollama),
 tests your microphone and speakers, and saves everything. Nothing is downloaded or changed until you press
 the button on the last step. Visual design and plain-language wording started in the original installer
 session; this version runs inside the packaged app on Windows, macOS and Linux.
 
-    JARVIS --setup            open the wizard
-    python jarvis_app.py --setup
+    KAIRO --setup            open the wizard
+    python kairo_app.py --setup
 """
 
 import queue
@@ -38,7 +38,7 @@ OLLAMA_DOWNLOAD = "https://ollama.com/download"
 
 ENGINES = [
     {"key": "online", "title": "Online AI service", "badge": "Smartest",
-     "text": "Connect JARVIS to Claude, ChatGPT (OpenAI), Google Gemini or another online AI. Your computer doesn't "
+     "text": "Connect KAIRO to Claude, ChatGPT (OpenAI), Google Gemini or another online AI. Your computer doesn't "
              "need to run the AI itself. Needs an API key from that company.", "available": True},
     {"key": "ollama", "title": "Ollama (on this computer)", "badge": "Free & private",
      "text": "Run an AI model directly on your computer. You don't need an API key, and it works offline. "
@@ -50,23 +50,23 @@ ENGINES = [
 ]
 
 LISTEN_MODES = [
-    ("conversation", "Say \"Jarvis\" once, then just talk",
+    ("conversation", "Say \"Kairo\" once, then just talk",
      "Recommended. After it answers you can keep talking without the name. It goes back to waiting after 20 "
-     "quiet seconds. The microphone stays on, but only words after \"Jarvis\" are acted on."),
-    ("wake_word", "Say \"Jarvis\" every time", "JARVIS only reacts to sentences that include its name."),
+     "quiet seconds. The microphone stays on, but only words after \"Kairo\" are acted on."),
+    ("wake_word", "Say \"Kairo\" every time", "KAIRO only reacts to sentences that include its name."),
     ("push_to_talk", "Press a button to talk",
      "The microphone is off until you press TALK on the panel" + (" or Ctrl+Alt+J." if sys.platform == "win32" else ".")),
-    ("text", "Type only - no microphone", "The microphone is never used. Type to JARVIS in its panel."),
+    ("text", "Type only - no microphone", "The microphone is never used. Type to KAIRO in its panel."),
 ]
 
 
 class Wizard(tk.Tk):
     SCREENS = ["welcome", "check", "engine", "brain", "voice", "extras", "install", "done"]
 
-    def __init__(self, restart_jarvis_on_close: bool = False):
+    def __init__(self, restart_kairo_on_close: bool = False):
         super().__init__()
-        self.restart_jarvis_on_close = restart_jarvis_on_close
-        self.title("JARVIS Setup")
+        self.restart_kairo_on_close = restart_kairo_on_close
+        self.title("KAIRO Setup")
         self.configure(bg=BG)
         self.geometry("820x660")
         self.minsize(680, 580)
@@ -244,14 +244,14 @@ class Wizard(tk.Tk):
             self._close()
             return
         msg = ("Setup is still working. Stop after the current step and close?" if busy
-               else "Close JARVIS Setup? Your choices so far won't be saved, and you can run setup again any time.")
+               else "Close KAIRO Setup? Your choices so far won't be saved, and you can run setup again any time.")
         if messagebox.askyesno("Close setup?", msg, parent=self):
             self.cancel_flag.set()
             self._close()
 
     def _close(self):
-        if self.restart_jarvis_on_close and steps.current_settings().get("setup_complete"):
-            steps.launch_jarvis(["--restarted"])
+        if self.restart_kairo_on_close and steps.current_settings().get("setup_complete"):
+            steps.launch_kairo(["--restarted"])
         self.destroy()
 
     # ------------------------------------------------------------------ 1. welcome
@@ -259,7 +259,7 @@ class Wizard(tk.Tk):
         art = tk.Canvas(self.body, height=150, bg=BG, highlightthickness=0)
         art.pack(fill="x", pady=(6, 0))
         art.bind("<Configure>", lambda e: self._draw_logo(art, e.width))
-        self._title("Welcome to JARVIS!",
+        self._title("Welcome to KAIRO!",
                     "Let's get your personal AI assistant ready. Don't worry if you've never set up anything like "
                     "this before. We'll handle the technical stuff.")
         self._text(self.body, "This takes about 3 minutes. If you choose a local AI model, downloading it adds "
@@ -303,7 +303,7 @@ class Wizard(tk.Tk):
         self.check_label.configure(text=checks.describe_results(report), fg=GREEN if not report.problems else GOLD)
         rows = [("ok", line) for line in report.good_news] + [("warn", line) for line in report.problems]
         rows.append(("info", f"Graphics card: {report.gpu_name}." if report.gpu_name else
-                     "Graphics card: not detected. That's fine - JARVIS works without one."))
+                     "Graphics card: not detected. That's fine - KAIRO works without one."))
         if report.ollama_found:
             rows.append(("info", "Ollama is installed" + (" and running." if report.ollama_running else " (not running right now).")))
         if report.claude_code_found:
@@ -325,7 +325,7 @@ class Wizard(tk.Tk):
 
     # ------------------------------------------------------------------ 3. engine
     def screen_engine(self):
-        self._title("How should JARVIS think?", "Pick one. You can change this later from JARVIS's Settings.")
+        self._title("How should KAIRO think?", "Pick one. You can change this later from KAIRO's Settings.")
         grid = tk.Frame(self.body, bg=BG)
         grid.pack(fill="both", expand=True)
         self.engine_var = tk.StringVar(value=self.engine)
@@ -392,7 +392,7 @@ class Wizard(tk.Tk):
             card.bind("<Button-1>", lambda e, p=pid: (self.provider_var.set(p), self._refresh_provider()))
             self.provider_cards[pid] = card
         self._text(self.body, "API keys are separate from chat subscriptions like ChatGPT Plus or Claude Pro, and "
-                   "companies usually charge for API use. JARVIS shows you which models your key can use.", fg=MUTED)
+                   "companies usually charge for API use. KAIRO shows you which models your key can use.", fg=MUTED)
         self.provider_box = tk.Frame(self.body, bg=BG)
         self.provider_box.pack(fill="x", pady=(6, 0))
         self.online_next = self._nav(back=lambda: self.show("engine"), nxt=self._online_next)
@@ -441,7 +441,7 @@ class Wizard(tk.Tk):
             prefix = f" It starts with '{info['key_prefix']}'." if info["key_prefix"] else ""
             how = (f"1. Press the button below. Your browser opens the official {info['site']} page.\n"
                    "2. Sign in, or create an account.\n"
-                   "3. Create a new key (any name, like JARVIS) and copy it. Most sites show a key only once.\n"
+                   "3. Create a new key (any name, like KAIRO) and copy it. Most sites show a key only once.\n"
                    f"4. Come back here, paste it below, and press Check key.{prefix}")
         tk.Label(box, text=how, bg=PANEL, fg=TEXT, justify="left", anchor="w", wraplength=700).pack(fill="x", padx=12)
         if info["key_url"]:
@@ -493,7 +493,7 @@ class Wizard(tk.Tk):
         self.model_var = tk.StringVar(value=self.model or providers.suggest_model(self.provider, self.models))
         ttk.Combobox(self.model_row, textvariable=self.model_var, values=self.models, width=60).pack(anchor="w", pady=2)
         tk.Label(self.model_row, text="Choose a chat model. To control your computer, the model must support "
-                 "\"tools\" (most current chat models do). If one doesn't, JARVIS can still talk but not act.",
+                 "\"tools\" (most current chat models do). If one doesn't, KAIRO can still talk but not act.",
                  bg=BG, fg=MUTED, anchor="w", wraplength=720, justify="left").pack(fill="x")
 
     def _key_inputs(self) -> tuple[str, str]:
@@ -526,7 +526,7 @@ class Wizard(tk.Tk):
         if self.provider == "anthropic" and self.plan_var.get() == "plan":
             self.claude_mode = "plan"
             if not (self.report and self.report.claude_code_found) and not messagebox.askyesno(
-                    "Claude Code not found", "Claude Code isn't installed on this computer yet, so JARVIS won't be "
+                    "Claude Code not found", "Claude Code isn't installed on this computer yet, so KAIRO won't be "
                     "able to think until it is. Continue anyway?", parent=self):
                 return
             self.show("voice")
@@ -534,7 +534,7 @@ class Wizard(tk.Tk):
         self.claude_mode = "api"
         key, url = self._key_inputs()
         if self.key_checked_for != self.provider or not self.models:
-            messagebox.showinfo("Check your key first", "Press 'Check key' so JARVIS can make sure the key works "
+            messagebox.showinfo("Check your key first", "Press 'Check key' so KAIRO can make sure the key works "
                                 "and see which models you can use.", parent=self)
             return
         self.model = self.model_var.get().strip()
@@ -623,14 +623,14 @@ class Wizard(tk.Tk):
                             steps.EMBEDDING_MODEL["size_gb"] if name == steps.EMBEDDING_MODEL["name"] else 0)
                 downloads.append(f"{name} (about {size} GB)")
         if downloads and not messagebox.askyesno(
-                "Download models?", "On the last step, JARVIS will download:\n\n  " + "\n  ".join(downloads) +
+                "Download models?", "On the last step, KAIRO will download:\n\n  " + "\n  ".join(downloads) +
                 "\n\nThis can take a while on slow internet. Continue?", parent=self):
             return
         self.show("voice")
 
     # ------------------------------------------------------------------ 5. voice
     def screen_voice(self):
-        self._title("Your voice and JARVIS's voice", "Pick a microphone and test it, then choose how JARVIS sounds.")
+        self._title("Your voice and KAIRO's voice", "Pick a microphone and test it, then choose how KAIRO sounds.")
         mics = self.report.microphones if self.report else checks.input_microphones()
         mic_card = self._card(self.body)
         tk.Label(mic_card, text="1. Microphone", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"), anchor="w").pack(fill="x", padx=12, pady=(8, 2))
@@ -642,17 +642,17 @@ class Wizard(tk.Tk):
         self.mic_test_btn = self._button(row, "Test microphone", self._test_mic, side="left")
         self.meter = ttk.Progressbar(mic_card, style="J.Horizontal.TProgressbar", maximum=100, length=400)
         self.meter.pack(fill="x", padx=12, pady=(4, 2))
-        self.mic_result = tk.Label(mic_card, text="Press Test, then say something like \"Hello JARVIS\". "
+        self.mic_result = tk.Label(mic_card, text="Press Test, then say something like \"Hello KAIRO\". "
                                    "Nothing is recorded or saved.", bg=PANEL, fg=MUTED, anchor="w", wraplength=700,
                                    justify="left")
         self.mic_result.pack(fill="x", padx=12, pady=(0, 8))
         if not mics:
-            self.mic_result.configure(text="No microphone found. You can still type to JARVIS (choose 'Type only' next).",
+            self.mic_result.configure(text="No microphone found. You can still type to KAIRO (choose 'Type only' next).",
                                       fg=GOLD)
             self._enable(self.mic_test_btn, False, primary=False)
 
         voice_card = self._card(self.body)
-        tk.Label(voice_card, text="2. JARVIS's voice", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"), anchor="w").pack(fill="x", padx=12, pady=(8, 2))
+        tk.Label(voice_card, text="2. KAIRO's voice", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"), anchor="w").pack(fill="x", padx=12, pady=(8, 2))
         row = tk.Frame(voice_card, bg=PANEL)
         row.pack(fill="x", padx=12, pady=(4, 10))
         labels = {v: label for v, label in steps.VOICES}
@@ -660,12 +660,12 @@ class Wizard(tk.Tk):
         ttk.Combobox(row, textvariable=self.voice_var, values=[label for _, label in steps.VOICES], state="readonly",
                      width=46).pack(side="left")
         self.sample_btn = self._button(row, "Play sample", self._play_sample, side="left")
-        tk.Label(voice_card, text="Turn your speakers up a little. The sample needs the internet; without it JARVIS "
+        tk.Label(voice_card, text="Turn your speakers up a little. The sample needs the internet; without it KAIRO "
                  "uses your computer's built-in voice.", bg=PANEL, fg=MUTED, anchor="w", wraplength=700,
                  justify="left").pack(fill="x", padx=12, pady=(0, 8))
 
         mode_card = self._card(self.body)
-        tk.Label(mode_card, text="3. How do you want to talk to JARVIS?", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"),
+        tk.Label(mode_card, text="3. How do you want to talk to KAIRO?", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"),
                  anchor="w").pack(fill="x", padx=12, pady=(8, 2))
         self.mode_var = tk.StringVar(value=self.listen_mode if mics else "text")
         modes = tk.Frame(mode_card, bg=PANEL)
@@ -682,7 +682,7 @@ class Wizard(tk.Tk):
 
     def _test_mic(self):
         self._enable(self.mic_test_btn, False, primary=False)
-        self.mic_result.configure(text="Listening for 5 seconds... say \"Hello JARVIS\".", fg=CYAN)
+        self.mic_result.configure(text="Listening for 5 seconds... say \"Hello KAIRO\".", fg=CYAN)
 
         def run():
             try:
@@ -719,13 +719,13 @@ class Wizard(tk.Tk):
         box = self._card(self.body)
         inner = tk.Frame(box, bg=PANEL)
         inner.pack(fill="x", padx=12, pady=8)
-        self._check(inner, "Start JARVIS when I log in", self.login_var,
-                    "JARVIS starts quietly in the background, so it's ready when you need it.")
-        self._check(inner, "Show the JARVIS status panel", self.panel_var,
-                    "A small box in the corner that shows when JARVIS is listening, with Mute and Stop buttons. "
+        self._check(inner, "Start KAIRO when I log in", self.login_var,
+                    "KAIRO starts quietly in the background, so it's ready when you need it.")
+        self._check(inner, "Show the KAIRO status panel", self.panel_var,
+                    "A small box in the corner that shows when KAIRO is listening, with Mute and Stop buttons. "
                     "Recommended.")
         feats = self._card(self.body)
-        tk.Label(feats, text="What JARVIS can do in this version", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"),
+        tk.Label(feats, text="What KAIRO can do in this version", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"),
                  anchor="w").pack(fill="x", padx=12, pady=(8, 2))
         included = [
             ("Computer control", "Opens apps and websites, plays music, changes the volume."),
@@ -742,7 +742,7 @@ class Wizard(tk.Tk):
             tk.Label(line, text=f"{name}: ", fg=TEXT, bg=PANEL, font=(UI, 10, "bold")).pack(side="left")
             tk.Label(line, text=text, fg=MUTED, bg=PANEL, anchor="w").pack(side="left", fill="x")
         tk.Label(feats, text=later, bg=PANEL, fg=MUTED, anchor="w", wraplength=700, justify="left").pack(fill="x", padx=12, pady=(4, 8))
-        self._nav(back=lambda: self.show("voice"), nxt=self._extras_next, next_text="Set up JARVIS")
+        self._nav(back=lambda: self.show("voice"), nxt=self._extras_next, next_text="Set up KAIRO")
 
     def _extras_next(self):
         self.start_at_login = self.login_var.get()
@@ -807,10 +807,10 @@ class Wizard(tk.Tk):
         s = steps.settings_mod.load()
         if not s.get("setup_complete"):
             raise StepError("Your choices weren't saved. Press Retry.")
-        log("Everything JARVIS needs is in place.")
+        log("Everything KAIRO needs is in place.")
 
     def screen_install(self):
-        self._title("Setting up JARVIS", "Each step does real work. If one has a problem, you'll see why and can try again.")
+        self._title("Setting up KAIRO", "Each step does real work. If one has a problem, you'll see why and can try again.")
         self.step_rows: dict[str, tk.Label] = {}
         for key, label, optional in self._plan():
             row = tk.Frame(self.body, bg=BG)
@@ -880,33 +880,33 @@ class Wizard(tk.Tk):
     # ------------------------------------------------------------------ 8. done
     def screen_done(self):
         self.finished_ok = True
-        self._title("JARVIS is ready!", "Hello! I'm JARVIS, your personal AI assistant. I'm ready to help.")
+        self._title("KAIRO is ready!", "Hello! I'm KAIRO, your personal AI assistant. I'm ready to help.")
         card = self._card(self.body)
         tk.Label(card, text="Try saying", bg=PANEL, fg=CYAN, font=(UI, 11, "bold"), anchor="w").pack(fill="x", padx=12, pady=(8, 2))
         if self.listen_mode == "text":
-            tips = ["Click TYPE on the JARVIS panel, then type: open the calculator",
+            tips = ["Click TYPE on the KAIRO panel, then type: open the calculator",
                     "What's the weather in London?", "Remind me to stretch in 20 minutes"]
         else:
-            tips = ['"Jarvis, open the calculator."', '"Jarvis, what\'s the weather in London?"  then  "And tomorrow?"',
-                    '"Jarvis, remind me to stretch in 20 minutes."', '"Jarvis, tell me something interesting."']
+            tips = ['"Kairo, open the calculator."', '"Kairo, what\'s the weather in London?"  then  "And tomorrow?"',
+                    '"Kairo, remind me to stretch in 20 minutes."', '"Kairo, tell me something interesting."']
         for t in tips:
             tk.Label(card, text="•  " + t, bg=PANEL, fg=TEXT, anchor="w").pack(fill="x", padx=12)
         tk.Label(card, text="", bg=PANEL).pack()
-        self._text(self.body, "Look for the JARVIS panel in the bottom-right corner of your screen. Right-click it any "
-                   "time to change settings or quit. To stop JARVIS talking, say \"stop\" or press STOP.")
+        self._text(self.body, "Look for the KAIRO panel in the bottom-right corner of your screen. Right-click it any "
+                   "time to change settings or quit. To stop KAIRO talking, say \"stop\" or press STOP.")
         if self.engine == "ollama":
             self._text(self.body, "Local models need a minute to warm up, so the first answer is slow. After that "
                        "they're quicker.", fg=GOLD)
-        self._nav(nxt=self._start_jarvis, next_text="Start JARVIS")
+        self._nav(nxt=self._start_kairo, next_text="Start KAIRO")
         self._button(self.footer, "Close", self._close_without_start, side="left")
 
     def _close_without_start(self):
-        self.restart_jarvis_on_close = False
+        self.restart_kairo_on_close = False
         self.destroy()
 
-    def _start_jarvis(self):
-        steps.launch_jarvis(["--restarted"])
-        self.restart_jarvis_on_close = False
+    def _start_kairo(self):
+        steps.launch_kairo(["--restarted"])
+        self.restart_kairo_on_close = False
         self.destroy()
 
     # ------------------------------------------------------------------ events from worker threads
@@ -933,12 +933,12 @@ class Wizard(tk.Tk):
             if err:
                 self.mic_result.configure(text=err, fg=RED)
             elif peak > 0.15:
-                self.mic_result.configure(text="✔ JARVIS can hear you clearly.", fg=GREEN)
+                self.mic_result.configure(text="✔ KAIRO can hear you clearly.", fg=GREEN)
             elif peak > 0.04:
-                self.mic_result.configure(text="⚠ JARVIS can hear you, but quietly. Move closer or turn the microphone "
+                self.mic_result.configure(text="⚠ KAIRO can hear you, but quietly. Move closer or turn the microphone "
                                           "volume up in your sound settings.", fg=GOLD)
             else:
-                self.mic_result.configure(text="✖ JARVIS didn't hear anything. Check that the right microphone is "
+                self.mic_result.configure(text="✖ KAIRO didn't hear anything. Check that the right microphone is "
                                           "selected and isn't muted, then test again.", fg=RED)
         elif kind == "sample_done" and self.current == "voice":
             self._enable(self.sample_btn, True, primary=False)
@@ -1010,7 +1010,7 @@ def selftest() -> int:
 def run(argv: list[str]) -> int:
     if "--selftest" in argv:
         return selftest()
-    Wizard(restart_jarvis_on_close="--restart-jarvis" in argv).mainloop()
+    Wizard(restart_kairo_on_close="--restart-kairo" in argv).mainloop()
     return 0
 
 

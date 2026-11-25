@@ -1,4 +1,4 @@
-# Versions JARVIS is tested with. Install into the project's .venv:
+# Versions KAIRO is tested with. Install into the project's .venv:
 #   .venv\Scripts\python.exe -m pip install -r requirements.txt
 anthropic==2.10.0            # Claude API + the @beta_tool tool definitions
 claude-agent-sdk==0.2.184    # Claude via your Claude plan (drives the installed Claude Code)

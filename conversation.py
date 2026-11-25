@@ -1,15 +1,15 @@
-"""Decides whether something the microphone heard was meant for JARVIS.
+"""Decides whether something the microphone heard was meant for KAIRO.
 
 Pure logic (no audio, no AI) so it can be unit-tested. The voice loop in main.py feeds it transcripts.
 
 Every utterance gets one of these verdicts:
-    DIRECT     - clearly a command for JARVIS ("Jarvis, open Chrome", or the first thing said after "Jarvis")
-    MAYBE      - might be for JARVIS (a follow-up without the name, or the name mentioned mid-sentence).
+    DIRECT     - clearly a command for KAIRO ("Kairo, open Chrome", or the first thing said after "Kairo")
+    MAYBE      - might be for KAIRO (a follow-up without the name, or the name mentioned mid-sentence).
                  The AI is told it may stay silent if it's background chatter.
-    WAKE_ONLY  - just "Hey Jarvis" - start listening for the command
-    IGNORE     - not for JARVIS
+    WAKE_ONLY  - just "Hey Kairo" - start listening for the command
+    IGNORE     - not for KAIRO
     STOP       - "stop" / "cancel" / "that's all" - stop talking and end the conversation
-    GOODBYE    - shut JARVIS down
+    GOODBYE    - shut KAIRO down
 """
 
 import difflib
@@ -45,7 +45,7 @@ def find_wake_word(text: str, wake_words: list[str]) -> re.Match | None:
 
 
 def is_stop(text: str, wake_words: list[str]) -> bool:
-    """'stop', 'Jarvis stop', 'okay that's all thanks' ..."""
+    """'stop', 'Kairo stop', 'okay that's all thanks' ..."""
     t = _norm(text)
     m = find_wake_word(t, wake_words)
     if m:
@@ -61,8 +61,8 @@ def is_goodbye(text: str) -> bool:
 def classify(text: str, wake_words: list[str], awaiting_command: bool, in_follow_up: bool, mode: str) -> Verdict:
     """Work out what to do with one transcript.
 
-    awaiting_command: the user just said "Jarvis" on its own, so this is their command.
-    in_follow_up:     JARVIS answered recently, so a follow-up without the name is plausible.
+    awaiting_command: the user just said "Kairo" on its own, so this is their command.
+    in_follow_up:     KAIRO answered recently, so a follow-up without the name is plausible.
     mode:             settings listen_mode (conversation | wake_word | always | push_to_talk).
     """
     text = text.strip()
@@ -86,18 +86,18 @@ def classify(text: str, wake_words: list[str], awaiting_command: bool, in_follow
     before = text[: m.start()].strip(" ,.!?")
     after = text[m.end():].strip(" ,.!?")
     if re.fullmatch(rf"(?:{_GREETING}\s*)*", before.lower()):
-        # "Hey Jarvis, open Chrome" / "Jarvis" - name at the start: clearly talking to JARVIS.
+        # "Hey Kairo, open Chrome" / "Kairo" - name at the start: clearly talking to KAIRO.
         return Verdict(DIRECT, after) if after else Verdict(WAKE_ONLY)
     if not after:
-        # "Open Chrome, Jarvis" is a real command, but "Amazon Jarvis" / "I built Jarvis" usually isn't.
+        # "Open Chrome, Kairo" is a real command, but "Amazon Kairo" / "I built Kairo" usually isn't.
         # Short single-word fragments are more often mishearings than commands, so let the AI judge.
         return Verdict(MAYBE, before)
-    # Name in the middle: "are you just making Jarvis do it" - usually talking *about* JARVIS.
+    # Name in the middle: "are you just making Kairo do it" - usually talking *about* KAIRO.
     return Verdict(MAYBE, text)
 
 
 def looks_like_echo(heard: str, being_spoken: str, threshold: float = 0.5) -> bool:
-    """True if what the mic heard is probably JARVIS's own voice coming out of the speakers."""
+    """True if what the mic heard is probably KAIRO's own voice coming out of the speakers."""
     h, s = _norm(heard), _norm(being_spoken)
     if not h or not s:
         return False
@@ -115,10 +115,10 @@ _INTERRUPT_WORDS = {"stop", "wait", "cancel", "quiet", "enough", "pause", "silen
 
 
 def detect_interruption(heard: str, being_spoken: str, wake_words: list[str]) -> Verdict | None:
-    """While JARVIS is talking the microphone also hears JARVIS. Decide if the user cut in.
+    """While KAIRO is talking the microphone also hears KAIRO. Decide if the user cut in.
 
-    Without echo cancellation the transcript is often JARVIS's words mixed with the user's, so only trust
-    signals JARVIS itself isn't saying: its own name, or a stop word that isn't in the sentence being spoken.
+    Without echo cancellation the transcript is often KAIRO's words mixed with the user's, so only trust
+    signals KAIRO itself isn't saying: its own name, or a stop word that isn't in the sentence being spoken.
     Returns STOP, DIRECT(command) or None (no interruption).
     """
     h, s = _norm(heard), _norm(being_spoken)
@@ -152,7 +152,7 @@ def is_silent_reply(reply: str) -> bool:
 
 
 class ConversationState:
-    """Tracks whether JARVIS is in standby or in an active conversation."""
+    """Tracks whether KAIRO is in standby or in an active conversation."""
 
     def __init__(self, follow_up_seconds: float, clock=time.monotonic):
         self.follow_up_seconds = follow_up_seconds
@@ -176,7 +176,7 @@ class ConversationState:
         self._awaiting_until = self._clock() + wait_seconds
 
     def answered(self):
-        """JARVIS replied - open the follow-up window."""
+        """KAIRO replied - open the follow-up window."""
         self._awaiting_until = 0.0
         self._follow_up_until = self._clock() + self.follow_up_seconds
 

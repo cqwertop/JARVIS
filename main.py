@@ -1,18 +1,18 @@
-"""JARVIS - a voice assistant for this PC.
+"""KAIRO - a voice assistant for this PC.
 
 Run:   .venv\\Scripts\\python.exe main.py            (voice mode)
        .venv\\Scripts\\python.exe main.py --text     (type instead of talk - handy for testing)
 
-Talking to JARVIS (default "conversation" mode):
-  Say "Jarvis, <request>". After it answers you can just keep talking - follow-ups don't need the name
-  until you've been quiet for a while (follow_up_seconds in settings). Say "stop" / "Jarvis, stop" to cut it off,
-  "that's all" to end the conversation, "goodbye Jarvis" to shut it down.
+Talking to KAIRO (default "conversation" mode):
+  Say "Kairo, <request>". After it answers you can just keep talking - follow-ups don't need the name
+  until you've been quiet for a while (follow_up_seconds in settings). Say "stop" / "Kairo, stop" to cut it off,
+  "that's all" to end the conversation, "goodbye Kairo" to shut it down.
   The on-screen panel shows whether the microphone is on. Ctrl+Alt+M mutes, Ctrl+Alt+S stops speech,
   Ctrl+Alt+J talks without the name. Settings: data/settings.json (all options are listed in settings.py).
 
 AI: your Claude plan through Claude Code by default; the Claude API if ANTHROPIC_API_KEY is set; a local Ollama
-model with --backend ollama. If Claude is unreachable or out of usage, JARVIS falls back to the local model.
-install_startup.py makes JARVIS start (hidden, in the background) whenever you log in to Windows.
+model with --backend ollama. If Claude is unreachable or out of usage, KAIRO falls back to the local model.
+install_startup.py makes KAIRO start (hidden, in the background) whenever you log in to Windows.
 """
 
 import argparse
@@ -31,12 +31,12 @@ import brains
 import conversation as conv
 import credentials
 import paths
-import jarvis_log
+import kairo_log
 import settings as settings_mod
 import tools
 from voice import Listener, Speaker, chime, list_microphones
 
-log = logging.getLogger("jarvis")
+log = logging.getLogger("kairo")
 STATUS_FILE = settings_mod.DATA_DIR / "status.json"
 
 
@@ -102,7 +102,7 @@ class Assistant:
             self.state.end()
         if self.hud:
             self.hud.set_muted(self.muted)
-        self._show("muted" if self.muted else "standby", "Microphone is off" if self.muted else "Say 'Jarvis' to start")
+        self._show("muted" if self.muted else "standby", "Microphone is off" if self.muted else "Say 'Kairo' to start")
 
     def stop_speaking(self):
         self.speaker.stop()
@@ -134,7 +134,7 @@ class Assistant:
         self._write_status(state)
 
     def _write_status(self, state: str, force: bool = False):
-        """data/status.json lets the health check (and future dashboards) see that JARVIS is alive."""
+        """data/status.json lets the health check (and future dashboards) see that KAIRO is alive."""
         now = time.time()
         if not force and now - self._last_status_write < 30:
             return
@@ -150,7 +150,7 @@ class Assistant:
 
     # ------------------------------------------------------------------ thinking
     def think(self, command: str, maybe: bool = False) -> str | None:
-        """Ask the AI. Returns the reply to speak, or None if JARVIS should stay silent."""
+        """Ask the AI. Returns the reply to speak, or None if KAIRO should stay silent."""
         if self.s["log_transcripts"]:
             log.info("You: %s%s", command, "  (not addressed by name)" if maybe else "")
         self._show("thinking", command)
@@ -293,15 +293,15 @@ def open_folder(path):
 
 
 def open_setup(restart_after: bool = False, assistant=None):
-    """Open the setup wizard in its own process. JARVIS restarts afterwards so new settings apply."""
+    """Open the setup wizard in its own process. KAIRO restarts afterwards so new settings apply."""
     import subprocess
 
     if paths.FROZEN:
         cmd = [sys.executable, "--setup"]
     else:
-        cmd = [sys.executable, str(paths.APP_DIR / "jarvis_app.py"), "--setup"]
+        cmd = [sys.executable, str(paths.APP_DIR / "kairo_app.py"), "--setup"]
     if restart_after:
-        cmd.append("--restart-jarvis")
+        cmd.append("--restart-kairo")
     subprocess.Popen(cmd)
     if restart_after and assistant:
         assistant.quit()
@@ -311,18 +311,18 @@ SHOW_REQUEST = settings_mod.DATA_DIR / "show-panel.request"  # written by a seco
 
 
 def claim_single_instance() -> bool:
-    """False if another JARVIS is already running (so startup + a manual launch don't make two)."""
+    """False if another KAIRO is already running (so startup + a manual launch don't make two)."""
     if sys.platform == "win32":
         import ctypes
 
         global _instance_mutex
-        _instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\JARVIS_voice_assistant")
+        _instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\KAIRO_voice_assistant")
         return ctypes.windll.kernel32.GetLastError() != 183  # 183 = ERROR_ALREADY_EXISTS
     import fcntl
 
     global _lock_file
     settings_mod.DATA_DIR.mkdir(parents=True, exist_ok=True)
-    _lock_file = open(settings_mod.DATA_DIR / "jarvis.lock", "w")
+    _lock_file = open(settings_mod.DATA_DIR / "kairo.lock", "w")
     try:
         fcntl.flock(_lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return True
@@ -343,7 +343,7 @@ def retry(what: str, make, attempts: int = 30, delay: float = 10):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="JARVIS voice assistant")
+    parser = argparse.ArgumentParser(description="KAIRO voice assistant")
     parser.add_argument("--text", action="store_true", help="type commands instead of speaking")
     parser.add_argument("--no-speech", action="store_true", help="text mode: print replies without speaking them")
     parser.add_argument("--mic", type=int, default=None, help="microphone device index (see --list-mics)")
@@ -351,17 +351,17 @@ def main():
     parser.add_argument("--backend", choices=["auto", "pro", "api", "online", "ollama"], default=None,
                         help="pro = Claude plan via Claude Code; api = ANTHROPIC_API_KEY; ollama = local model")
     parser.add_argument("--mode", choices=list(settings_mod.LISTEN_MODES), default=None,
-                        help="how JARVIS decides you're talking to it (overrides settings)")
-    parser.add_argument("--log", action="store_true", help="write output to jarvis.log (used when started with Windows)")
+                        help="how KAIRO decides you're talking to it (overrides settings)")
+    parser.add_argument("--log", action="store_true", help="write output to kairo.log (used when started with Windows)")
     parser.add_argument("--verbose", action="store_true", help="more detailed logging")
     parser.add_argument("--restarted", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if paths.FROZEN and not args.text:
         args.log = True  # the installed app has no console window
-    jarvis_log.setup(to_file=args.log, verbose=args.verbose)
+    kairo_log.setup(to_file=args.log, verbose=args.verbose)
     if args.log:
-        log.info("===== JARVIS starting =====")
+        log.info("===== KAIRO starting =====")
 
     if args.list_mics:
         for i, name in enumerate(list_microphones()):
@@ -371,13 +371,13 @@ def main():
     deadline = time.monotonic() + (15 if "--restarted" in sys.argv else 0)
     while not claim_single_instance():
         if time.monotonic() >= deadline:
-            # Opened again (Start menu / search / double-click): ask the running JARVIS to show its panel.
-            log.info("JARVIS is already running - asking it to show its panel.")
+            # Opened again (Start menu / search / double-click): ask the running KAIRO to show its panel.
+            log.info("KAIRO is already running - asking it to show its panel.")
             try:
                 settings_mod.DATA_DIR.mkdir(parents=True, exist_ok=True)
                 SHOW_REQUEST.write_text(str(time.time()), encoding="utf-8")
             except OSError as exc:
-                log.warning("Couldn't reach the running JARVIS: %r", exc)
+                log.warning("Couldn't reach the running KAIRO: %r", exc)
             return
         time.sleep(0.5)
 
@@ -394,7 +394,7 @@ def main():
 
     speaker = Speaker.from_settings(s["voice"])
     if args.no_speech:
-        speaker.say = lambda text, wait=True: print(f"JARVIS: {text}")
+        speaker.say = lambda text, wait=True: print(f"KAIRO: {text}")
     tools.announce = lambda text: speaker.say(text, wait=False)
     tools.start_reminder_service()
 
@@ -414,8 +414,8 @@ def main():
 
             menu = {
                 "Settings...": lambda: open_setup(restart_after=True, assistant=assistant),
-                "Open my JARVIS data folder": lambda: open_folder(settings_mod.DATA_DIR),
-                "Quit JARVIS": assistant.quit,
+                "Open my KAIRO data folder": lambda: open_folder(settings_mod.DATA_DIR),
+                "Quit KAIRO": assistant.quit,
             }
             hud = Hud(assistant.toggle_mute, assistant.stop_speaking, assistant.talk, s["hotkeys"],
                       on_text=assistant.submit_text, menu=menu, show_typing=s["listen_mode"] == "text",
@@ -455,7 +455,7 @@ def main():
         if hud:
             hud.close()
         brain.close()
-    log.info("JARVIS offline.")
+    log.info("KAIRO offline.")
 
 
 if __name__ == "__main__":

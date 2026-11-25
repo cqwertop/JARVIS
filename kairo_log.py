@@ -1,4 +1,4 @@
-"""Logging setup. jarvis.log is size-limited (rotates at 1 MB, keeps 3 old files) so it can't fill the disk."""
+"""Logging setup. kairo.log is size-limited (rotates at 1 MB, keeps 3 old files) so it can't fill the disk."""
 
 import logging
 import logging.handlers
@@ -8,7 +8,7 @@ FORMAT = "%(asctime)s %(levelname)-7s %(name)s: %(message)s"
 
 
 class _StreamToLogger:
-    """Catches stray print()s / library output when JARVIS runs hidden, so they land in the log too."""
+    """Catches stray print()s / library output when KAIRO runs hidden, so they land in the log too."""
 
     def __init__(self, logger: logging.Logger, level: int):
         self._logger, self._level, self._buf = logger, level, ""
@@ -47,4 +47,4 @@ def setup(to_file: bool, verbose: bool = False) -> logging.Logger:
     # Quiet chatty libraries.
     for noisy in ("httpx", "httpcore", "anthropic", "urllib3", "asyncio", "comtypes", "mcp", "claude_agent_sdk"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
-    return logging.getLogger("jarvis")
+    return logging.getLogger("kairo")

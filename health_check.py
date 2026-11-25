@@ -1,10 +1,10 @@
-"""JARVIS health check - the first step of the self-maintenance cycle.
+"""KAIRO health check - the first step of the self-maintenance cycle.
 
     .venv\\Scripts\\python.exe health_check.py            check and print a report
     .venv\\Scripts\\python.exe health_check.py --notify   also show a desktop notification if something is wrong
 
-Checks: code compiles, unit tests pass, dependencies are consistent, data files are readable, JARVIS is
-alive (data/status.json heartbeat), new errors in jarvis.log since the last check, and the AI backends are reachable.
+Checks: code compiles, unit tests pass, dependencies are consistent, data files are readable, KAIRO is
+alive (data/status.json heartbeat), new errors in kairo.log since the last check, and the AI backends are reachable.
 It only reads and reports - it never changes code or data. Reports go to data/health/.
 Exit code: 0 all good, 1 warnings, 2 errors.
 """
@@ -42,7 +42,7 @@ class Report:
         return max((i[0] for i in self.items), key=LEVELS.get, default="INFO")
 
     def markdown(self) -> str:
-        lines = [f"# JARVIS health report - {dt.datetime.now():%Y-%m-%d %H:%M}", "", f"Overall: **{self.worst}**", ""]
+        lines = [f"# KAIRO health report - {dt.datetime.now():%Y-%m-%d %H:%M}", "", f"Overall: **{self.worst}**", ""]
         for level, check, msg in sorted(self.items, key=lambda i: -LEVELS[i[0]]):
             lines.append(f"- **{level}** `{check}`: {msg}")
         return "\n".join(lines) + "\n"
@@ -98,15 +98,15 @@ def check_data_files(r: Report):
 def check_heartbeat(r: Report):
     f = DATA / "status.json"
     if not f.exists():
-        r.add("INFO", "heartbeat", "JARVIS hasn't written a status file yet (not started since the update)")
+        r.add("INFO", "heartbeat", "KAIRO hasn't written a status file yet (not started since the update)")
         return
     status = json.loads(f.read_text(encoding="utf-8"))
     age = dt.datetime.now() - dt.datetime.fromisoformat(status["updated"])
     alive = _pid_alive(status.get("pid"))
     if not alive:
-        r.add("WARNING", "heartbeat", f"JARVIS isn't running (last seen {status['updated']})")
+        r.add("WARNING", "heartbeat", f"KAIRO isn't running (last seen {status['updated']})")
     elif age > dt.timedelta(minutes=10) and status.get("state") not in ("muted", "push_to_talk"):
-        r.add("WARNING", "heartbeat", f"JARVIS is running but hasn't reported in {age.seconds // 60} min - it may be stuck")
+        r.add("WARNING", "heartbeat", f"KAIRO is running but hasn't reported in {age.seconds // 60} min - it may be stuck")
     else:
         r.add("INFO", "heartbeat", f"running (state {status.get('state')}, AI {status.get('backend')})")
     if status.get("last_error"):
@@ -128,7 +128,7 @@ def check_log(r: Report, state: dict):
     errors: list[str] = []
     import paths
 
-    for f in sorted(paths.LOG_FILE.parent.glob("jarvis.log*")):
+    for f in sorted(paths.LOG_FILE.parent.glob("kairo.log*")):
         for line in f.read_text(encoding="utf-8", errors="ignore").splitlines():
             m = re.match(r"(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d),\d+ (ERROR|CRITICAL)\s+(.*)", line)
             if m and m.group(1) > since:
@@ -140,7 +140,7 @@ def check_log(r: Report, state: dict):
     if errors:
         r.add("WARNING" if len(errors) < 5 else "ERROR", "log", f"{len(errors)} new error(s); latest: " + " | ".join(errors[-3:]))
     else:
-        r.add("INFO", "log", "no new errors in jarvis.log")
+        r.add("INFO", "log", "no new errors in kairo.log")
 
 
 def check_backends(r: Report, s: dict):
@@ -197,7 +197,7 @@ def run(notify_on_problem: bool = False, run_tests: bool = True) -> Report:
     STATE_FILE.write_text(json.dumps(state), encoding="utf-8")
     if notify_on_problem and LEVELS[r.worst] >= LEVELS["WARNING"]:
         problems = [f"{c}: {m}" for lvl, c, m in r.items if LEVELS[lvl] >= 1]
-        notify(f"JARVIS health: {r.worst}", " / ".join(problems)[:250])
+        notify(f"KAIRO health: {r.worst}", " / ".join(problems)[:250])
     return r
 
 
