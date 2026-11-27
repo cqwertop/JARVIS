@@ -50,8 +50,11 @@ ln -s /Applications "$STAGE/Applications"
 cat > "$STAGE/READ ME FIRST.txt" <<'EOF'
 Installing KAIRO
 1. Drag KAIRO into the Applications folder.
-2. Open Applications, RIGHT-click (or Control-click) KAIRO and choose Open, then Open again.
-   (You only need to do this the first time. macOS asks because KAIRO isn't from the App Store.)
+2. Open KAIRO from Applications. The first time, macOS says it can't check KAIRO for malicious software,
+   because KAIRO isn't signed by a paid Apple developer account. To allow it (only needed once):
+   - macOS 15 Sequoia or newer: click Done, open System Settings > Privacy & Security, scroll down,
+     click "Open Anyway" next to KAIRO, and confirm with your password.
+   - macOS 14 or older: RIGHT-click (or Control-click) KAIRO in Applications, choose Open, then Open again.
 3. Allow microphone access when asked, so KAIRO can hear you.
 A short setup guide then helps you choose its AI, test your microphone and pick a voice.
 EOF

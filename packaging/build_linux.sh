@@ -16,6 +16,8 @@ PY=${PYTHON:-python3.12}
 VERSION=$(.venv/bin/python -c "import version; print(version.__version__)")
 ARCH=$(uname -m)
 DEBARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
+# Debian version order: "0.10.0~beta.1" sorts before "0.10.0" ("0.10.0-beta.1" would sort after it).
+DEBVERSION=${VERSION/-beta./~beta.}
 echo "== KAIRO $VERSION - Linux ($ARCH) build =="
 
 echo "1/5 Running tests..."
@@ -59,7 +61,7 @@ sed "s|@EXEC@|/opt/kairo/KAIRO|" packaging/linux/kairo.desktop.in > "$PKG/usr/sh
 SIZE=$(du -sk "$PKG" | cut -f1)
 cat > "$PKG/DEBIAN/control" <<EOF
 Package: kairo
-Version: $VERSION
+Version: $DEBVERSION
 Architecture: $DEBARCH
 Maintainer: KAIRO Project <noreply@example.invalid>
 Installed-Size: $SIZE
