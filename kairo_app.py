@@ -40,9 +40,9 @@ def selftest() -> int:
     import tempfile
 
     results = []
-    for mod in ("main", "brains", "pro_brain", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
+    for mod in ("main", "brains", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
                 "credentials", "platform_support", "health_check", "kairo_setup", "checks", "steps", "updater", "update_ui",
-                "speech_recognition", "pyaudio", "edge_tts", "anthropic", "claude_agent_sdk", "psutil", "PIL",
+                "speech_recognition", "pyaudio", "edge_tts", "anthropic", "psutil", "PIL",
                 "keyring"):
         importlib.import_module(mod)
         results.append(mod)

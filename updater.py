@@ -38,7 +38,8 @@ RELEASES_PAGE = f"https://github.com/{REPO}/releases"
 FIRST_CHECK_DELAY = 60          # seconds after start-up
 CHECK_INTERVAL = 12 * 60 * 60   # then every 12 hours
 
-_VERSION = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:[-.]?(?:b|beta)\.?(\d+))?$", re.IGNORECASE)
+# Tags: v0.10.0, v0.10.0-beta.1, and for the macOS / Linux releases v0.10.0-beta.1-macos / -linux.
+_VERSION = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:[-.]?(?:b|beta)\.?(\d+))?(?:-(macos|linux))?$", re.IGNORECASE)
 
 
 class UpdateError(Exception):
@@ -50,8 +51,20 @@ def parse_version(text: str) -> tuple | None:
     m = _VERSION.match(text.strip())
     if not m:
         return None
-    major, minor, patch, beta = m.groups()
+    major, minor, patch, beta, _platform = m.groups()
     return int(major), int(minor), int(patch), int(beta) if beta is not None else float("inf")
+
+
+def tag_platform(tag: str) -> str | None:
+    """'macos' or 'linux' for those platforms' release tags, None for the Windows / main release."""
+    m = _VERSION.match(tag.strip())
+    return m.group(5).lower() if m and m.group(5) else None
+
+
+def _version_text(tag: str) -> str:
+    m = _VERSION.match(tag.strip())
+    major, minor, patch, beta, _platform = m.groups()
+    return f"{major}.{minor}.{patch}" + (f"-beta.{beta}" if beta is not None else "")
 
 
 def is_beta(text: str) -> bool:
@@ -60,14 +73,19 @@ def is_beta(text: str) -> bool:
 
 
 def install_kind() -> str:
-    """'msix' (installed from the .msixbundle), 'installer' (Windows installer), or 'source'."""
+    """'msix' (from the .msixbundle), 'installer' (Windows installer), 'macos', 'linux', or 'source'."""
     if not paths.FROZEN:
         return "source"
     if sys.platform == "win32" and "\\WindowsApps\\" in sys.executable:
         return "msix"
     if sys.platform == "win32":
         return "installer"
-    return "other"
+    return "macos" if sys.platform == "darwin" else "linux"
+
+
+# Which release tags each install type follows (see tag_platform), and which need a file to download.
+_TAG_PLATFORM = {"msix": None, "installer": None, "source": None, "macos": "macos", "linux": "linux"}
+NEEDS_FILE = ("msix", "installer", "macos")  # Linux: the release page (.deb or .tar.gz, your choice)
 
 
 @dataclass
@@ -84,7 +102,11 @@ class Release:
 
 
 def _asset_for(kind: str, assets: list[dict]) -> dict | None:
-    pattern = {"msix": r"\.msixbundle$", "installer": r"^KAIRO-Setup-.*\.exe$"}.get(kind)
+    import platform
+
+    arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x86_64"
+    pattern = {"msix": r"\.msixbundle$", "installer": r"^KAIRO-Setup-.*\.exe$",
+               "macos": rf"-macOS-{arch}\.dmg$"}.get(kind)
     if not pattern:
         return None
     return next((a for a in assets if re.search(pattern, a.get("name", ""), re.IGNORECASE)), None)
@@ -104,17 +126,17 @@ def pick_update(releases: list[dict], current: str = __version__, include_beta: 
         if r.get("draft"):
             continue
         v = parse_version(r.get("tag_name", ""))
-        if v is None or v <= best_v:
+        if v is None or v <= best_v or tag_platform(r["tag_name"]) != _TAG_PLATFORM.get(kind):
             continue
         if (r.get("prerelease") or v[3] != float("inf")) and not include_beta:
             continue
         asset = _asset_for(kind, r.get("assets", []))
-        if kind in ("msix", "installer") and asset is None:
+        if kind in NEEDS_FILE and asset is None:
             continue  # this release has nothing this install can use
         digest = (asset or {}).get("digest") or ""
         best_v = v
         best = Release(
-            version=r["tag_name"].lstrip("vV"),
+            version=_version_text(r["tag_name"]),
             name=r.get("name") or r["tag_name"],
             page_url=r.get("html_url") or RELEASES_PAGE,
             notes=(r.get("body") or "").strip(),

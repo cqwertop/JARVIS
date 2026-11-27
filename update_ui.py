@@ -77,14 +77,16 @@ class UpdateUI:
         beta = " (beta)" if release.prerelease else ""
         changes = _what_changed(release.notes)
         intro = f"KAIRO {release.version}{beta} is available. You have {__version__}."
-        if kind not in ("msix", "installer") or not release.asset_url:
+        if kind not in updater.NEEDS_FILE or not release.asset_url:
             if _mb().askyesno(TITLE, f"{intro}\n\nOpen the release page to get it?"):
                 webbrowser.open(release.page_url)
             return
         size = f" ({release.asset_size / 1_048_576:.0f} MB)" if release.asset_size else ""
         question = (f"{intro}\n\n" + (f"What's new:\n{changes}\n\n" if changes else "") +
                     f"Download{size} and install it now?\n"
-                    "KAIRO closes so Windows can update it. Your settings and memories are kept.")
+                    + ("KAIRO closes; drag the new KAIRO into Applications to replace the old one."
+                       if kind == "macos" else "KAIRO closes so Windows can update it.")
+                    + " Your settings and memories are kept.")
         if _mb().askyesno(TITLE, question):
             threading.Thread(target=self._install, args=(release,), daemon=True, name="update-download").start()
 

@@ -47,7 +47,7 @@ cp packaging/linux/README.txt "$STAGE/"
 chmod +x "$STAGE"/*.sh
 TAR="dist/KAIRO-$VERSION-linux-$ARCH.tar.gz"
 tar -C "$(dirname "$STAGE")" -czf "$TAR" "KAIRO-$VERSION"
-sha256sum "$TAR" | tee "$TAR.sha256"
+(cd "$(dirname "$TAR")" && sha256sum "$(basename "$TAR")") | tee "$TAR.sha256"
 
 # --- .deb (installs to /opt/kairo for all users)
 PKG=$(mktemp -d)/kairo
@@ -73,5 +73,5 @@ Description: KAIRO personal voice assistant
 EOF
 DEB="dist/kairo_${VERSION}_${DEBARCH}.deb"
 dpkg-deb --root-owner-group --build "$PKG" "$DEB" >/dev/null
-sha256sum "$DEB" | tee "$DEB.sha256"
+(cd "$(dirname "$DEB")" && sha256sum "$(basename "$DEB")") | tee "$DEB.sha256"
 echo "Done: $TAR and $DEB"

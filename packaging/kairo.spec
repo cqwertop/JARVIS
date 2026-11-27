@@ -22,10 +22,11 @@ datas = [(str(sr_dir / f), "speech_recognition") for f in flac if (sr_dir / f).e
 datas += [(str(sr_dir / "version.txt"), "speech_recognition")] if (sr_dir / "version.txt").exists() else []
 datas += [(str(ASSETS / "kairo.png"), "assets")]
 
-local_modules = ["main", "brains", "pro_brain", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
+local_modules = ["main", "brains", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
                  "credentials", "platform_support", "health_check", "kairo_log", "paths", "providers", "version",
                  "kairo_setup", "checks", "steps", "updater", "update_ui"]
-hidden = local_modules + collect_submodules("keyring.backends") + ["edge_tts", "claude_agent_sdk", "mcp", "anthropic"]
+# The Claude plan option (pro_brain.py, Claude Agent SDK) is only for running from source, so it isn't packaged.
+hidden = local_modules + collect_submodules("keyring.backends") + ["edge_tts", "anthropic"]
 if WIN:
     hidden += ["comtypes", "comtypes.client", "comtypes.stream", "pycaw.pycaw", "winsound", "winreg"]
 
@@ -34,7 +35,8 @@ a = Analysis(
     pathex=[str(ROOT), str(ROOT / "installer")],
     datas=datas,
     hiddenimports=hidden,
-    excludes=["matplotlib", "numpy", "pandas", "scipy", "IPython", "pytest", "PyInstaller"],
+    excludes=["matplotlib", "numpy", "pandas", "scipy", "IPython", "pytest", "PyInstaller",
+              "pro_brain", "claude_agent_sdk", "mcp"],
     noarchive=False,
 )
 # The Claude Agent SDK ships its own 360 MB copy of Claude Code. KAIRO uses the Claude Code the user installs

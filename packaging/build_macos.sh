@@ -58,5 +58,5 @@ EOF
 DMG="dist/KAIRO-$VERSION-macOS-$ARCH.dmg"
 rm -f "$DMG"
 hdiutil create -volname "KAIRO $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-shasum -a 256 "$DMG" | tee "$DMG.sha256"
+(cd "$(dirname "$DMG")" && shasum -a 256 "$(basename "$DMG")") | tee "$DMG.sha256"
 echo "Done: $DMG"

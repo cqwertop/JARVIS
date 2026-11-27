@@ -65,6 +65,47 @@ class PickUpdate(unittest.TestCase):
         self.assertEqual(updater.pick_update(only_msix, current="0.9.1", kind="source").version, "1.0.0")
 
 
+class PlatformReleases(unittest.TestCase):
+    """macOS and Linux builds live in their own releases, tagged ...-macos / ...-linux."""
+
+    def _rel(self, tag, names):
+        r = release(tag, prerelease=True, assets=())
+        r["assets"] = [{"name": n, "browser_download_url": f"https://example.invalid/{n}", "size": 5,
+                        "digest": "sha256:" + "cd" * 32} for n in names]
+        return r
+
+    def setUp(self):
+        self.releases = [
+            self._rel("v0.10.0-beta.2-macos", ["KAIRO-0.10.0-beta.2-macOS-arm64.dmg",
+                                               "KAIRO-0.10.0-beta.2-macOS-x86_64.dmg"]),
+            self._rel("v0.10.0-beta.2-linux", ["kairo_0.10.0-beta.2_amd64.deb"]),
+            release("v0.10.0-beta.1", prerelease=True),
+        ]
+
+    def test_tag_parsing(self):
+        self.assertEqual(updater.tag_platform("v0.10.0-beta.2-macos"), "macos")
+        self.assertIsNone(updater.tag_platform("v0.10.0-beta.2"))
+        self.assertEqual(updater.parse_version("v0.10.0-beta.2-linux"), (0, 10, 0, 2))
+
+    def test_windows_ignores_other_platforms(self):
+        self.assertIsNone(updater.pick_update(self.releases, current="0.10.0-beta.1", kind="msix"))
+
+    def test_mac_gets_its_own_architecture(self):
+        from unittest import mock
+
+        with mock.patch("platform.machine", return_value="arm64"):
+            r = updater.pick_update(self.releases, current="0.10.0-beta.1", kind="macos")
+        self.assertEqual((r.version, r.asset_name), ("0.10.0-beta.2", "KAIRO-0.10.0-beta.2-macOS-arm64.dmg"))
+        with mock.patch("platform.machine", return_value="x86_64"):
+            r = updater.pick_update(self.releases, current="0.10.0-beta.1", kind="macos")
+        self.assertEqual(r.asset_name, "KAIRO-0.10.0-beta.2-macOS-x86_64.dmg")
+
+    def test_linux_gets_the_release_page(self):
+        r = updater.pick_update(self.releases, current="0.10.0-beta.1", kind="linux")
+        self.assertEqual(r.version, "0.10.0-beta.2")
+        self.assertIn("linux", r.page_url)
+
+
 class Download(unittest.TestCase):
     def _release(self, src: Path, sha: str | None):
         return updater.Release(version="1.0.0", name="1.0.0", page_url="", notes="", prerelease=False,

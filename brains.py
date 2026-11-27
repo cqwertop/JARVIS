@@ -408,9 +408,16 @@ def make_online_brain(settings: dict, system_prompt: str):
 
 
 def choose_backend(settings: dict, override: str | None = None) -> str:
+    import paths
+
     backend = override or settings["backend"]
     if backend == "auto":
-        backend = "api" if os.environ.get("ANTHROPIC_API_KEY") else "pro"
+        backend = "api" if os.environ.get("ANTHROPIC_API_KEY") or paths.FROZEN else "pro"
+    if backend == "pro" and paths.FROZEN:
+        # Using a Claude plan is only available when running from source (Anthropic doesn't allow apps given
+        # to other people to use plan sign-ins), and the installed app doesn't include it.
+        log.warning("The Claude plan option isn't available in the installed app - using the Claude API instead.")
+        backend = "api"
     return backend
 
 
