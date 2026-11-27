@@ -6,7 +6,7 @@ name: Build installers
 on:
   workflow_dispatch:
   push:
-    tags: ["v*"]
+    tags: ["v*", "!v*-macos", "!v*-linux"]  # the -macos / -linux release tags hold builds made by this workflow
 
 permissions:
   contents: read
