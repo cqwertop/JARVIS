@@ -30,7 +30,10 @@ rm -rf build dist/KAIRO
 
 echo "4/5 Self-test of the packaged app..."
 TEST_HOME=$(mktemp -d)
-KAIRO_HOME="$TEST_HOME" dist/KAIRO/KAIRO --selftest
+if ! KAIRO_HOME="$TEST_HOME" dist/KAIRO/KAIRO --selftest; then
+    echo "Self-test FAILED:"; cat "$TEST_HOME/selftest.txt" 2>/dev/null || echo "(no selftest.txt was written)"
+    exit 1
+fi
 cat "$TEST_HOME/selftest.txt"
 
 echo "5/5 Making the packages..."
