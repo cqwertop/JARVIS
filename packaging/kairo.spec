@@ -24,7 +24,7 @@ datas += [(str(ASSETS / "kairo.png"), "assets")]
 
 local_modules = ["main", "brains", "pro_brain", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
                  "credentials", "platform_support", "health_check", "kairo_log", "paths", "providers", "version",
-                 "kairo_setup", "checks", "steps"]
+                 "kairo_setup", "checks", "steps", "updater", "update_ui"]
 hidden = local_modules + collect_submodules("keyring.backends") + ["edge_tts", "claude_agent_sdk", "mcp", "anthropic"]
 if WIN:
     hidden += ["comtypes", "comtypes.client", "comtypes.stream", "pycaw.pycaw", "winsound", "winreg"]

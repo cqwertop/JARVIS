@@ -8,7 +8,7 @@
 
 #define AppName "KAIRO"
 #ifndef AppVersion
-  #define AppVersion "0.9.1"
+  #define AppVersion "0.10.0-beta.1"
 #endif
 #define AppExe "KAIRO.exe"
 #define Root "..\.."

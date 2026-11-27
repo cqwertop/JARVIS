@@ -41,7 +41,7 @@ def selftest() -> int:
 
     results = []
     for mod in ("main", "brains", "pro_brain", "voice", "tools", "conversation", "memory", "tasks", "hud", "settings",
-                "credentials", "platform_support", "health_check", "kairo_setup", "checks", "steps",
+                "credentials", "platform_support", "health_check", "kairo_setup", "checks", "steps", "updater", "update_ui",
                 "speech_recognition", "pyaudio", "edge_tts", "anthropic", "claude_agent_sdk", "psutil", "PIL",
                 "keyring"):
         importlib.import_module(mod)

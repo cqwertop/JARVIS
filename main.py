@@ -412,8 +412,10 @@ def main():
         if s["hud"]:
             from hud import Hud
 
+            updates = {}  # filled in once the panel exists
             menu = {
                 "Settings...": lambda: open_setup(restart_after=True, assistant=assistant),
+                "Check for updates...": lambda: updates["ui"].check_now(),
                 "Open my KAIRO data folder": lambda: open_folder(settings_mod.DATA_DIR),
                 "Quit KAIRO": assistant.quit,
             }
@@ -421,6 +423,13 @@ def main():
                       on_text=assistant.submit_text, menu=menu, show_typing=s["listen_mode"] == "text",
                       show_request=SHOW_REQUEST)
             assistant.attach_hud(hud)
+            if hud.ok:
+                import updater
+                from update_ui import UpdateUI
+
+                updates["ui"] = UpdateUI(hud, assistant, s["updates"]["include_beta"])
+                if s["updates"]["check_automatically"]:
+                    updater.BackgroundChecker(updates["ui"].announce, s["updates"]["include_beta"])
         if s["hotkeys"]["enabled"]:
             from hud import start_hotkeys
 

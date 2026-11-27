@@ -17,7 +17,13 @@ $work    = Join-Path $root "build\msix"
 $subject = "CN=KAIRO Project"   # must match Publisher in AppxManifest.xml
 
 $version = (& $py -c "import version; print(version.__version__)").Trim()
-$pkgVersion = (($version -split '[^0-9]+' | Where-Object { $_ }) + @("0", "0", "0", "0"))[0..3] -join "."
+# MSIX versions are four numbers, and a beta must sort before its final release:
+#   0.10.0-beta.1 -> 0.10.0.1,  0.10.0-beta.2 -> 0.10.0.2,  0.10.0 -> 0.10.0.1000
+$m = [regex]::Match($version, '^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$')
+if (-not $m.Success) { throw "version.py must look like 1.2.3 or 1.2.3-beta.4 (got '$version')." }
+$revision = if ($m.Groups[4].Success) { [int]$m.Groups[4].Value } else { 1000 }
+if ($m.Groups[4].Success -and $revision -ge 1000) { throw "Beta numbers must be below 1000." }
+$pkgVersion = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value).$revision"
 Write-Host "== KAIRO $version - MSIX bundle ($pkgVersion) ==" -ForegroundColor Cyan
 
 if ($Rebuild -or -not (Test-Path "dist\KAIRO\KAIRO.exe")) {

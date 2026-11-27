@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.10.0-beta.1 (2026-11-26) - beta
+
+### Added
+- **Automatic updates from GitHub Releases** (`updater.py`, `update_ui.py`). KAIRO checks a minute after it starts
+  and every 12 hours, and shows "Update ... : right-click > Check for updates" on its panel when there's a new
+  version. **Check for updates...** in the panel's right-click menu checks right away. Installing downloads the
+  right file for your install (the `.msixbundle` for the MSIX package, `KAIRO-Setup-*.exe` for the Windows
+  installer), checks it against the SHA-256 checksum GitHub publishes, and opens it. Windows then checks the
+  signature and installs it. Running from source, it links to the release page instead.
+- **Beta channel:** if you're on a beta you're offered newer betas and the final release; if you're on a final
+  release you only get final releases. Change it with `"updates": {"include_beta": true}` in `settings.json`, or
+  turn checking off with `"check_automatically": false`.
+
+### Changed
+- Version numbers: betas are `X.Y.Z-beta.N` and sort before `X.Y.Z`. The MSIX package version is `X.Y.Z.N` for a
+  beta and `X.Y.Z.1000` for the final release, so Windows can upgrade from a beta to the final release.
+
+### Not changed
+- Using a Claude Pro/Max plan is still only available when running KAIRO from source on your own PC. Anthropic
+  doesn't allow third-party apps to offer claude.ai sign-in or plan usage limits without its approval, so the
+  installed app uses API keys (or a free local model with Ollama, which the setup guide already supports).
+
 ## 0.9.1 (2026-11-24) - renamed to KAIRO
 
 ### Changed

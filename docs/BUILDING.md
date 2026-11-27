@@ -40,7 +40,12 @@ downloadable artifacts on the run's page. Nothing is published automatically.
   `ISCC /DTestBuild /O<dir> /FKAIRO-Setup-TEST packaging\windows\kairo.iss`. Don't distribute it.
 - **Not done, and these cost money (ask the owner first):** Windows code signing (removes the SmartScreen warning) and
   an Apple Developer ID for notarization ($99/yr, removes the macOS "can't check" warning).
-- Bump the version in `version.py` **and** `packaging/windows/version_info.txt`.
+- Bump the version in `version.py` **and** `packaging/windows/version_info.txt`. Betas are `X.Y.Z-beta.N`
+  (`filevers=(X, Y, Z, N)`); final releases are `X.Y.Z` (`filevers=(X, Y, Z, 1000)`).
+- **Releases and auto-update:** tag releases `vX.Y.Z` or `vX.Y.Z-beta.N` and mark betas as pre-releases. KAIRO's
+  updater reads the GitHub release list and needs the `.msixbundle` (and/or `KAIRO-Setup-*.exe`) attached to the
+  release. It verifies downloads with the SHA-256 that GitHub shows for each file, so upload files unchanged.
+  The MSIX bundle must be signed with the same certificate as before, or Windows won't accept it as an update.
 - **MSIX bundle:** signed with a self-signed certificate (`CN=KAIRO Project`), created in your user certificate
   store on the first build and reused after that. Windows only installs the bundle on PCs that trust `KAIRO.cer`:
   import it into **Local Machine > Trusted People** (needs admin), then double-click the `.msixbundle`. The package

@@ -71,6 +71,11 @@ DEFAULTS: dict = {
     },
     "log_transcripts": True,  # write what you said / KAIRO said to kairo.log
     "start_at_login": False,  # set by the setup wizard
+    "updates": {
+        "check_automatically": True,  # look for new versions on GitHub at start-up and every 12 hours
+        # Offer beta (pre-release) versions? null = only if you're already running a beta.
+        "include_beta": None,
+    },
     "setup_complete": False,  # the installed app shows the setup wizard until this is true
 }
 

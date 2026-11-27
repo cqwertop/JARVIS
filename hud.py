@@ -57,6 +57,10 @@ class Hud:
         self._thread.start()
         self._started.wait(5)
 
+    def call_soon(self, fn):
+        """Run fn on the panel's own thread (needed for anything that opens a window)."""
+        self._q.put(("call", fn, None))
+
     def set_state(self, state: str, detail: str | None = None):
         self._q.put(("state", state, detail))
 
@@ -218,6 +222,8 @@ class Hud:
                 if kind == "quit":
                     self._root.destroy()
                     return
+                if kind == "call":
+                    self._safe(value)
                 if kind == "toggle":
                     if self._root.state() == "withdrawn":
                         self._show()
